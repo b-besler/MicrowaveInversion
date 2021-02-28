@@ -9,6 +9,18 @@ Algorithms for inverse microwave problems.
 
 Developer Install
 =================
+Creates conda environment `mwi` to work from
+
 .. code-block:: bash
 
+  $ conda create -n mwi python=3.7
+  $ conda activate mwi
+  $ conda install --file requirements.txt
   $ pip install -e .
+
+To remove the conda environment:
+
+.. code-block:: bash
+
+  $ conda deactivate
+  $ conda env remove -n mwi
