@@ -1,0 +1,26 @@
+
+jobs:
+- job: Windows
+  pool:
+    vmImage: 'vs2017-win2016'
+  strategy:
+    matrix:
+      Python36:
+        python.version: '3.6'
+      Python37:
+        python.version: '3.7'
+      Python38:
+        python.version: '3.8'
+  steps:
+  - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
+    displayName: Add conda to path
+  - script: |
+        conda create -y -n mwi python=$(python.version)
+        conda activate mwi
+        conda install -y --file requirements.txt
+        pip install -e .
+    displayName: Setup conda
+  - script: |
+        call activate mwi
+        nosetests tests
+    displayName: Run tests
