@@ -16,7 +16,7 @@ jobs:
     displayName: Add conda to path
   - script: |
         conda create -y -n mwi python=$(python.version)
-        conda activate mwi
+        call activate mwi
         conda install -y --file requirements.txt
         pip install -e .
     displayName: Setup conda
