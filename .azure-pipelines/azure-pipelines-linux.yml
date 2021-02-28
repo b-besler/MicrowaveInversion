@@ -1,0 +1,26 @@
+jobs:
+- job: Linux
+  pool:
+    vmImage: 'ubuntu-latest'
+  strategy:
+    matrix:
+      Python36:
+        python.version: '3.6'
+      Python37:
+        python.version: '3.7'
+      Python38:
+        python.version: '3.8'
+  steps:
+  - bash: echo "##vso[task.prependpath]$CONDA/bin"
+    displayName: Add conda to path
+  - script: |
+        conda create -n mwi python=$(python.version)
+        conda activate mwi
+        conda install --file requirements.txt
+        pip install -e .
+    displayName: Setup conda
+  - script: |
+        source activate mwi
+        pytest
+    displayName: Run tests
+
