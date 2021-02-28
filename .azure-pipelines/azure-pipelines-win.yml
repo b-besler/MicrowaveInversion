@@ -22,5 +22,5 @@ jobs:
     displayName: Setup conda
   - script: |
         call activate mwi
-        nosetests tests
+        python -m nose tests
     displayName: Run tests
