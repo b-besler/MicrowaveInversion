@@ -1,0 +1,28 @@
+
+jobs:
+- job: macOS
+  pool:
+    vmImage: 'macOS-latest'
+  strategy:
+    matrix:
+      Python36:
+        python.version: '3.6'
+      Python37:
+        python.version: '3.7'
+      Python38:
+        python.version: '3.8'
+  steps:
+  - bash: |
+        echo "##vso[task.prependpath]$CONDA/bin"
+        sudo chown -R $USER $CONDA
+    displayName: Add conda to path
+  - script: |
+        conda create -y -n mwi python=$(python.version)
+        conda activate mwi
+        conda install -y --file requirements.txt
+        pip install -e .
+    displayName: Setup conda
+  - script: |
+        source activate mwi
+        nosetests tests
+    displayName: Run tests
