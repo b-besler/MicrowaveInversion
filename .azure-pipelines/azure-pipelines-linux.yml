@@ -21,6 +21,6 @@ jobs:
     displayName: Setup conda
   - script: |
         source activate mwi
-        pytest
+        nosetests tests
     displayName: Run tests
 
