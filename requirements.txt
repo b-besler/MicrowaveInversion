@@ -1,2 +1,3 @@
 # Devs tools
 pbr
+nose
