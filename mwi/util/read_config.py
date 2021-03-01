@@ -8,6 +8,12 @@ def read_model_config(filepath):
 
     Makes sure that dx, dy, x1/2, y1/2, and background objects are there and valid.
     Returns full dictionary
+
+    Args:
+        - filepath (str): filepath to .json file from main directory
+
+    Outputs:
+        - data (dict): dictionary holding .json data
     """
 
     # check file exists
@@ -25,11 +31,28 @@ def read_model_config(filepath):
     if not all(k in data for k in keys):
         raise ValueError ('Missing configuration variable, check file')
     
-    # objects have required data
+    # check objects have required data
     for obj in data["objects"]:
-        keys = ["er", "sig", "type"]
+        keys = ("er", "sig", "type")
         if not any(k in obj for k in keys):
-            raise ValueError ('Missing object information in configuration file')
+            raise ValueError('Missing object information in configuration file')
+
+        # check variables
+        if obj["er"] <= 0:
+            raise ValueError('Permittivity must be greater than zero')
+
+        if obj["sig"] < 0:
+            raise ValueError('Conductivity must be zero or greater')
+
+        if obj["type"] == "circle":
+            keys = ("x0","y0", "r")
+            if not any(k in obj for k in keys):
+                raise ValueError('Circle object must have x0, y0, and r')
+            
+        elif obj["type"] == "ellipse":
+            keys = ("x0","y0", "r1", "r2")
+            if not any(k in obj for k in keys):
+                raise ValueError('Circle object must have x0, y0, r1, and r2')
 
     # check variables
     if data["dx"] <= 0 or data["dy"] <= 0:
@@ -37,7 +60,7 @@ def read_model_config(filepath):
 
     if data['x1'] >= data['x2'] or data['y1'] >= data['y2']:
         raise ValueError('Second (x,y) coordinate must be greater than first')
-    
+
     return data
 
 def read_meas_config(filepath):
@@ -47,6 +70,12 @@ def read_meas_config(filepath):
 
     Makes sure that dx, dy, x1/2, y1/2, and background objects are there and valid.
     Returns full dictionary
+
+    Args:
+        - filepath (str): filepath to .json file from main directory
+
+    Outputs:
+        - data (dict): dictionary holding .json data
     """
 
     # check file exists
