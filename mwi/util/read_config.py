@@ -6,8 +6,9 @@ def read_model_config(filepath):
     
     Example usage: mwi.util.read_config("example/model_config.json")
 
-    Makes sure that dx, dy, x1/2, y1/2, and background objects are there and valid.
-    Returns full dictionary
+    Makes sure that all neccessary parameters are there and valid.
+    Makes sure optional objects are valid if present
+    Returns full dictionary of .json contents
 
     Args:
         - filepath (str): filepath to .json file from main directory
@@ -31,6 +32,14 @@ def read_model_config(filepath):
     if not all(k in data for k in keys):
         raise ValueError ('Missing configuration variable, check file')
     
+
+    # check variables
+    if data["dx"] <= 0 or data["dy"] <= 0:
+        raise ValueError('Discretization must be greater than 0')
+
+    if data['x1'] >= data['x2'] or data['y1'] >= data['y2']:
+        raise ValueError('Second (x,y) coordinate must be greater than first')
+
     # check objects have required data
     for obj in data["objects"]:
         keys = ("er", "sig", "type")
@@ -50,6 +59,8 @@ def read_model_config(filepath):
             if not any(k in obj for k in keys):
                 raise ValueError('Circle object must have x0, y0, and r')
             # Check that circle is inside model domain
+            if obj["r"] <= 0:
+                raise ValueError('Circle object radius must be greater than 0')
             if obj["x0"] - obj["r"] < data["x1"] or obj["x0"] + obj["r"] > data["x2"]:
                 raise ValueError('Circle object must be within model domain - check x')
             if obj["y0"] - obj["r"] < data["y1"] or obj["y0"] + obj["r"] > data["y2"]:
@@ -60,18 +71,13 @@ def read_model_config(filepath):
             keys = ("x0","y0", "r1", "r2")
             if not any(k in obj for k in keys):
                 raise ValueError('Ellipse object must have x0, y0, r1, and r2')
+            if obj["r1"] <= 0 or obj["r2"] <= 0:
+                raise ValueError('Elipse object radius must be greater than 0')
             # check that ellipse is inside model domain
             if obj["x0"] - obj["r1"] < data["x1"] or obj["x0"] + obj["r1"] > data["x2"]:
                 raise ValueError('Ellipse object must be within model domain - check x')
             if obj["y0"] - obj["r2"] < data["y1"] or obj["y0"] + obj["r2"] > data["y2"]:
                 raise ValueError('Ellipse object must be within model domain - check y')
-
-    # check variables
-    if data["dx"] <= 0 or data["dy"] <= 0:
-        raise ValueError('Discretization must be greater than 0')
-
-    if data['x1'] >= data['x2'] or data['y1'] >= data['y2']:
-        raise ValueError('Second (x,y) coordinate must be greater than first')
 
     return data
 
@@ -80,7 +86,7 @@ def read_meas_config(filepath):
     
     Example usage: mwi.util.read_config("example/measurement_config.json")
 
-    Makes sure that dx, dy, x1/2, y1/2, and background objects are there and valid.
+    Makes sure that neccessary parameters are there and valid
     Returns full dictionary
 
     Args:
