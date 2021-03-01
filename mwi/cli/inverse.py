@@ -1,9 +1,14 @@
 import argparse
+from mwi.util import read_config
 
 def inverse(model_config, prior_config, meas_config):
-    print('Configuration file 1: ' + model_config)
-    print('Configuration file 2: ' + prior_config)
-    print('Measurement configuration: ' + meas_config)
+    print(model_config)
+    print(prior_config)
+    print(meas_config)
+    meas_data = read_config.read_meas_config(meas_config)
+    model_data = read_config.read_model_config(model_config)
+    print(meas_data)
+    print(model_data)
 
 def main():
     description ='''Microwave Inverse
