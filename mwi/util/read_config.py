@@ -45,14 +45,26 @@ def read_model_config(filepath):
             raise ValueError('Conductivity must be zero or greater')
 
         if obj["type"] == "circle":
+            # check circle has neccessary parameters
             keys = ("x0","y0", "r")
             if not any(k in obj for k in keys):
                 raise ValueError('Circle object must have x0, y0, and r')
-            
+            # Check that circle is inside model domain
+            if obj["x0"] - obj["r"] < data["x1"] or obj["x0"] + obj["r"] > data["x2"]:
+                raise ValueError('Circle object must be within model domain - check x')
+            if obj["y0"] - obj["r"] < data["y1"] or obj["y0"] + obj["r"] > data["y2"]:
+                raise ValueError('Circle object must be within model domain - check y')
+
         elif obj["type"] == "ellipse":
+            # check that ellipse has neccessary parameters
             keys = ("x0","y0", "r1", "r2")
             if not any(k in obj for k in keys):
-                raise ValueError('Circle object must have x0, y0, r1, and r2')
+                raise ValueError('Ellipse object must have x0, y0, r1, and r2')
+            # check that ellipse is inside model domain
+            if obj["x0"] - obj["r1"] < data["x1"] or obj["x0"] + obj["r1"] > data["x2"]:
+                raise ValueError('Ellipse object must be within model domain - check x')
+            if obj["y0"] - obj["r2"] < data["y1"] or obj["y0"] + obj["r2"] > data["y2"]:
+                raise ValueError('Ellipse object must be within model domain - check y')
 
     # check variables
     if data["dx"] <= 0 or data["dy"] <= 0:
