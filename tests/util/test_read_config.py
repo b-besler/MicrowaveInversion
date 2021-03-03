@@ -21,10 +21,10 @@ class TestReadModelConfig(unittest.TestCase):
                     'type': 'background', 'er': 1, 'sig': 0
                 }, 
                 {
-                    'type': 'circle', 'er': 1.2, 'sig': 0.0, 'x0': 0.0, 'y0': 0.0, 'r': 0.075
+                    'type': 'circle', 'er': 1.2, 'sig': 0.0, 'x0': 0.001, 'y0': 0.001, 'r': 0.075
                 }, 
                 {
-                    'type': 'ellipse', 'er': 1.4, 'sig': 0.0, 'x0': 0.0, 'y0': 0.0, 'r1': 0.075, 'r2': 0.0375
+                    'type': 'ellipse', 'er': 1.4, 'sig': 0.0, 'x0': 0.001, 'y0': 0.001, 'r1': 0.075, 'r2': 0.0375
                 }
             ]
         }
