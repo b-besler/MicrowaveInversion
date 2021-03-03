@@ -54,6 +54,13 @@ class TestRx(unittest.TestCase):
         self.assertTrue(x == meas_surf.x0)
         self.assertTrue(y == meas_surf.y0)
     
+    def test_is_too_close(self):
+        bool_matrix = np.array([[1, 0, 0, 0],[0, 1, 0, 0],[0, 0, 1, 0],[0, 0, 0, 1]])
+        
+        meas_surf = MeasurementSurface(read_meas_config(self.example_file)["measurement_surface"])
+
+        self.assertTrue(np.all(meas_surf.is_too_close(pi/2) == bool_matrix))
+    
 
     
 

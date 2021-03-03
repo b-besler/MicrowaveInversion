@@ -104,5 +104,32 @@ class MeasurementSurface():
         self.x0 += dx
         self.y0 += dy
 
+    def is_too_close(self, angle):
+        """Returnds 2D boolean array with True if rx and tx are too close (within angle). Negative angle is ignored (returns all false).
 
+        Args:
+            -angle (float): angle separation (in radian) to test
+
+        Outputs:
+            - too_close (np.ndarray, dtype = bool): 2D array of bools (nrx by ntx). Returns TRUE if rx/tx are within angle, returns FALSE else. 
+        """
+        if angle >=0:
+            rx_angle = self.calc_rx_angle()
+            tx_angle = self.calc_tx_angle()
+
+            rx_angle2 = np.tile(rx_angle, (self.ntx, 1))
+            tx_angle2 = np.tile(tx_angle, (self.nrx, 1))
+
+            # calculate difference between angles and normalize to pi
+            dif =  (rx_angle2.T - tx_angle2)
+            dif = dif % (2*math.pi)
+            dif = (dif + 2*math.pi) % (2*math.pi)
+            idx = (dif > math.pi)
+            dif[idx] += -2*math.pi
+            # find which rx to tx angles are greater than threshold
+            too_close = (np.absolute(dif) - angle/2 <= -0.0001)
+        else:
+            too_close = np.zeros((self.nrx, self.ntx), dtype = bool)
+
+        return too_close
 
