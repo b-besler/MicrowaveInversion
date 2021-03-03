@@ -2,6 +2,8 @@ import unittest
 from mwi.util.rx import MeasurementSurface
 from mwi.util.read_config import read_meas_config
 import os
+from math import pi
+import numpy as np
 
 class TestRx(unittest.TestCase):
     example_file = "example/measurement_config.json"
@@ -18,6 +20,15 @@ class TestRx(unittest.TestCase):
         self.assertTrue(meas_surf.ntx == 4)
         self.assertTrue(meas_surf.nrx == 4)
         self.assertTrue(meas_surf.r == 0.15)
+    
+    def test_calc_angle(self):
+        angle = np.array([0, pi/2, pi, 3*pi/2])
+        meas_surf = MeasurementSurface(read_meas_config(self.example_file)["measurement_surface"])
+        self.assertTrue(np.allclose(angle, meas_surf.calc_angle(meas_surf.nrx)))
+
+    
+
+
 
     
 
