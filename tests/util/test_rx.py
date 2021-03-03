@@ -44,6 +44,15 @@ class TestRx(unittest.TestCase):
         y = np.array([round((meas_surf.y0)/dy)*dy, round((meas_surf.y0 + meas_surf.r)/dy)*dy, round((meas_surf.y0)/dy)*dy, round((meas_surf.y0 - meas_surf.r)/dy)*dy])
 
         self.assertTrue(np.allclose(meas_surf.calc_pos_discrete(meas_surf.nrx, dx, dy), np.array([x,y])))
+
+    def test_translate(self):
+        x = 1
+        y = 2
+        
+        meas_surf = MeasurementSurface(read_meas_config(self.example_file)["measurement_surface"])
+        meas_surf.translate(1, 2)
+        self.assertTrue(x == meas_surf.x0)
+        self.assertTrue(y == meas_surf.y0)
     
 
     
