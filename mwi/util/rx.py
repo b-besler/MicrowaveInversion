@@ -26,6 +26,25 @@ class MeasurementSurface():
 
         n = np.linspace(0, num - 1, num = num)
         return n*2*math.pi/num
+    
+    def calc_pos(self, n):
+        """Calculate (x,y) position of rx/tx placed equidistant around circle starting at +x-axis
 
+        Args:
+            - n (int): number of positions (usually nrx or ntx)
 
-        
+        Outputs:
+            - pos (np.ndarray): 2 x n array with x, y coordinates (float)
+        """
+        x = self.r * np.cos(self.calc_angle(n)) + self.x0
+        y = self.r * np.sin(self.calc_angle(n)) + self.y0
+
+        return np.array([x,y])
+
+    def calc_rx(self):
+        """ Calculates placement of Rx, placed equidistant around center """
+        return self.calc_pos(self.nrx)
+               
+    def calc_tx(self):
+        """Calculates placement of Tx placed equidistant around center """
+        return self.calc_pos(self.ntx)

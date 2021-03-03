@@ -26,6 +26,13 @@ class TestRx(unittest.TestCase):
         meas_surf = MeasurementSurface(read_meas_config(self.example_file)["measurement_surface"])
         self.assertTrue(np.allclose(angle, meas_surf.calc_angle(meas_surf.nrx)))
 
+    def test_calc_pos(self):
+        x_pos = np.array([0.15, 0, -0.15, 0])
+        y_pos = np.array([0, 0.15, 0, -0.15])
+        meas_surf = MeasurementSurface(read_meas_config(self.example_file)["measurement_surface"])
+        self.assertTrue(np.allclose(np.array([x_pos, y_pos]), meas_surf.calc_pos(meas_surf.ntx)))
+    
+
     
 
 
