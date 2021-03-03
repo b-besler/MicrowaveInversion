@@ -23,14 +23,27 @@ class TestRx(unittest.TestCase):
     
     def test_calc_angle(self):
         angle = np.array([0, pi/2, pi, 3*pi/2])
+
         meas_surf = MeasurementSurface(read_meas_config(self.example_file)["measurement_surface"])
         self.assertTrue(np.allclose(angle, meas_surf.calc_angle(meas_surf.nrx)))
 
     def test_calc_pos(self):
         x_pos = np.array([0.15, 0, -0.15, 0])
         y_pos = np.array([0, 0.15, 0, -0.15])
+
         meas_surf = MeasurementSurface(read_meas_config(self.example_file)["measurement_surface"])
         self.assertTrue(np.allclose(np.array([x_pos, y_pos]), meas_surf.calc_pos(meas_surf.ntx)))
+    
+    def test_calc_discrete_pos(self):
+        dx = 0.5
+        dy = 0.5
+
+        meas_surf = MeasurementSurface(read_meas_config(self.example_file)["measurement_surface"])
+
+        x = np.array([round((meas_surf.x0 + meas_surf.r)/dx)*dx, round(meas_surf.x0/dx)*dx, round((meas_surf.x0 - meas_surf.r)/dx)*dx, round(meas_surf.x0/dx)*dx])
+        y = np.array([round((meas_surf.y0)/dy)*dy, round((meas_surf.y0 + meas_surf.r)/dy)*dy, round((meas_surf.y0)/dy)*dy, round((meas_surf.y0 - meas_surf.r)/dy)*dy])
+
+        self.assertTrue(np.allclose(meas_surf.calc_pos_discrete(meas_surf.nrx, dx, dy), np.array([x,y])))
     
 
     
