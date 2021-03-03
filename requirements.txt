@@ -1,3 +1,5 @@
 # Devs tools
 pbr
 nose
+numpy
+matplotlib
