@@ -93,11 +93,11 @@ class MeasurementSurface():
 
     def calc_tx_discrete(self,dx,dy):
         """calculate Tx locations rounded to nearest discretization step (dx,dy)"""
-        return self.calc_discrete(self.ntx,dx,dy)
+        return self.calc_pos_discrete(self.ntx,dx,dy)
     
     def calc_rx_round(self,dx,dy):
         """calculate Rx locations rounded to nearest discretization step (dx,dy)"""
-        return self.calc_round(self.nrx,dx,dy)
+        return self.calc_pos_discrete(self.nrx,dx,dy)
     
     def translate(self, dx, dy):
         """Translate measurements surface by (dx,dy)"""
