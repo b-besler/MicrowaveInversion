@@ -41,8 +41,8 @@ class TestReadMeasConfig(unittest.TestCase):
             'measurement_surface': {
                 'x0': 0.0,
                 'y0': 0.0,
-                'nr': 48, 
-                'nt': 24, 
+                'nr': 4, 
+                'nt': 4, 
                 'r': 0.15
                 }, 
             'signal': {

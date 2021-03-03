@@ -15,9 +15,10 @@ class TestRx(unittest.TestCase):
 
         self.assertTrue(meas_surf.x0 == 0.0)
         self.assertTrue(meas_surf.y0 == 0.0)
-        self.assertTrue(meas_surf.ntx == 24)
-        self.assertTrue(meas_surf.nrx == 48)
+        self.assertTrue(meas_surf.ntx == 4)
+        self.assertTrue(meas_surf.nrx == 4)
         self.assertTrue(meas_surf.r == 0.15)
+
     
 
 
