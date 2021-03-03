@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from matplotlib import pyplot as plt
 
 class MeasurementSurface():
     """Class for circular measurement surface defined by center (x0,y0), radius (r), and number of receivers/transmitters (rx/tx)
@@ -26,6 +27,14 @@ class MeasurementSurface():
 
         n = np.linspace(0, num - 1, num = num)
         return n*2*math.pi/num
+
+    def calc_rx_angle(self):
+        """Calculate angle for rx positions"""
+        return self.calc_angle(self.nrx)
+    
+    def calc_tx_angle(self):
+        """Calculate angle for tx positions"""
+        return self.calc_angle(self.ntx)
     
     def calc_pos(self, n):
         """Calculate (x,y) position of rx/tx placed equidistant around circle starting at +x-axis
@@ -94,3 +103,6 @@ class MeasurementSurface():
         """Translate measurements surface by (dx,dy)"""
         self.x0 += dx
         self.y0 += dy
+
+
+
