@@ -39,9 +39,11 @@ class TestReadMeasConfig(unittest.TestCase):
     def test_read_example_file(self):
         output_dict = {
             'measurement_surface': {
-                'nr': 48, 
-                'nt': 24, 
-                'r': 0.5
+                'x0': 0.0,
+                'y0': 0.0,
+                'nr': 4, 
+                'nt': 4, 
+                'r': 0.15
                 }, 
             'signal': {
                 't0': 1e-09, 
