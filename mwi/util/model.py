@@ -4,6 +4,10 @@ from matplotlib import pyplot as plt
 
 class Model():
     """Class for simulation model: permittivity and conductivity images, measurement surface, and imaging domain
+
+    
+    Known issues:
+        -placing object at mid point between discretizations can cause errors due to float precision.
     """
 
     def __init__(self, config, rx_surface, image_domain):
