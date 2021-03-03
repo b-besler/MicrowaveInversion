@@ -31,6 +31,7 @@ class Model():
         self.sig = self.create_image(config, 'sig')
 
         # TODO assign measurement surface
+        self.rx = rx_surface
         # TODO assign imaging domain
 
     #properties
@@ -52,6 +53,12 @@ class Model():
     @property
     def y_cell(self):
         return np.linspace(self.y1 + self.dy/2, self.y2 - self.dy/2, num = math.ceil(self.y_size/self.dy))
+    @property
+    def nrx(self):
+        return self.rx.nrx
+    @property
+    def ntx(self):
+        return self.rx.ntx
 
     def create_image(self, config, prop):
         """Create 2D numpy image of property using objects in configuration
@@ -140,8 +147,11 @@ class Model():
     def plot(self, image, title):
         """Plot model using image (er, sig)
         """
-        plt.figure()
         plt.imshow(image, extent = [self.x[0], self.x[-1], self.y[0], self.y[-1]], origin = 'lower')
+        self.rx.plot()
+        ax = plt.gca()
+        ax.set_xticks(self.x)
+        ax.set_yticks(self.y)
         plt.title(title)
         plt.xticks(self.x)
         plt.yticks(self.y)

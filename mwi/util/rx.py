@@ -141,7 +141,6 @@ class MeasurementSurface():
         plt.plot(rec[0],rec[1],'r.',label = 'Rx')
         plt.plot(tx[0],tx[1],'b.', label = 'Tx')
         plt.legend()
-        plt.show()
 
 
     def plot_discrete(self,dx,dy):
@@ -152,4 +151,3 @@ class MeasurementSurface():
         plt.plot(rec[0],rec[1],'r.',label = 'Rx')
         plt.plot(tx[0],tx[1],'b.', label = 'Tx')
         plt.legend()
-        plt.show()
