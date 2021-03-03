@@ -11,7 +11,7 @@ class TestRx(unittest.TestCase):
         self.assertTrue(os.path.exists(self.example_file))
 
     def test_rx_class_init(self):
-        meas_surf = MeasurementSurface(read_meas_config(self.example_file))
+        meas_surf = MeasurementSurface(read_meas_config(self.example_file)["measurement_surface"])
 
         self.assertTrue(meas_surf.x0 == 0.0)
         self.assertTrue(meas_surf.y0 == 0.0)
@@ -19,5 +19,5 @@ class TestRx(unittest.TestCase):
         self.assertTrue(meas_surf.nrx == 48)
         self.assertTrue(meas_surf.r == 0.15)
     
-    
+
 
