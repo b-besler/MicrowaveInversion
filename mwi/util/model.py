@@ -80,7 +80,6 @@ class Model():
             elif obj["type"] == "circle":
                 # update image with circle
                 self.add_circle(obj, image, obj[prop])
-                print("circle")
             elif obj["type"] == "ellipse":
                 # update image with ellipse
                 self.add_ellipse(obj, image, obj[prop])
