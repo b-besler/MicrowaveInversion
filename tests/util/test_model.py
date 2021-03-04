@@ -1,6 +1,7 @@
 import unittest
 import mwi.util.model as model
 from mwi.util.read_config import read_model_config
+from mwi.util.read_config import read_domain_config
 import numpy as np
 import os
 
@@ -73,6 +74,24 @@ class TestModel(unittest.TestCase):
         # test for sigma
         self.assertTrue(np.allclose(test_model.sig, np.zeros((test_model.x_cell.size, test_model.x_cell.size))))
 
+class TestImageDomain(unittest.TestCase):
+    example_file = "example/image_domain.json"
+
+    def test_file_exists(self):
+        # test that file exists
+        self.assertTrue(os.path.exists(self.example_file))
+
+    def test_domain_init(self):
+        domain = model.ImageDomain(read_domain_config(self.example_file))
+        
+        self.assertAlmostEqual(domain.x1, -0.1)
+        self.assertAlmostEqual(domain.x2, 0.1)
+        self.assertAlmostEqual(domain.y1, -0.1)
+        self.assertAlmostEqual(domain.y2, 0.1)
+        self.assertAlmostEqual(domain.dx, 0.01)
+        self.assertAlmostEqual(domain.dy, 0.01)
+        self.assertAlmostEqual(domain.x_size, 0.2)
+        self.assertAlmostEqual(domain.y_size, 0.2)
         
 
 
