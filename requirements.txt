@@ -8,3 +8,4 @@ matplotlib
 
 # Image processing
 vtk
+h5py
