@@ -26,11 +26,11 @@ def read_model_config(filepath):
         data = json.load(file)
 
     # mandatory keys
-    keys = ("dx", "dy", "x1", "x2", "y1", "y2", "objects")
+    keys = ("dx", "dy", "x1", "x2", "y1", "y2", "objects", "name")
 
     # check they are all there
     if not all(k in data for k in keys):
-        raise ValueError ('Missing configuration variable, check file')
+        raise ValueError ('Missing or misspelled configuration variable, check file')
     
 
     # check variables
@@ -39,6 +39,9 @@ def read_model_config(filepath):
 
     if data['x1'] >= data['x2'] or data['y1'] >= data['y2']:
         raise ValueError('Second (x,y) coordinate must be greater than first')
+
+    if not isinstance(data["name"], str):
+        raise ValueError('Name must be a string')
 
     # check objects have required data
     for obj in data["objects"]:
@@ -109,7 +112,7 @@ def read_meas_config(filepath):
 
     # check they are all there
     if not all(k in data for k in keys):
-        raise ValueError('Missing configuration variable, check file')
+        raise ValueError('Missing or misspelled configuration variable, check file')
     
     keys = ("nr","nt","r")
     # check measurement surface variables are there

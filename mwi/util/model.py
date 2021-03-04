@@ -25,6 +25,7 @@ class Model():
         self.x2 = config["x2"]
         self.y1 = config["y1"]
         self.y2 = config["y2"]
+        self.name = config["name"]
 
         # create 2D image using configuration data
         self.er = self.create_image(config, 'er')

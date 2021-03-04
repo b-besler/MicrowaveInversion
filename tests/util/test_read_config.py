@@ -15,7 +15,8 @@ class TestReadModelConfig(unittest.TestCase):
             'x1': -0.3, 
             'x2': 0.3, 
             'y1': -0.3, 
-            'y2': 0.3, 
+            'y2': 0.3,
+            'name': "example_model",
             'objects': [
                 {
                     'type': 'background', 'er': 1, 'sig': 0
