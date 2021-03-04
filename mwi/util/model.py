@@ -172,6 +172,20 @@ class Model():
         """
         self.plot(self.sig, 'Conductivity')
 
+    def translate(self,dx,dy):
+        """ Translate model and objects by dx, dy
+        Args:
+            - dx (float): x translation
+            - dy (float): y translation
+        """
+
+        self.x1 += dx
+        self.x2 += dx
+        self.y1 += dy
+        self.y2 += dy
+        self.rx.translate(dx,dy)
+        self.image_domain.translate(dx,dy)
+
 class ImageDomain():
     """Class for informationa and functions to do with the image domain"""
 
@@ -207,5 +221,16 @@ class ImageDomain():
     @property
     def y_cell(self):
         return np.linspace(self.y1 + self.dy/2, self.y2 - self.dy/2, num = math.ceil(self.y_size/self.dy))
+
+    def translate(self, dx, dy):
+        """ Translate model and objects by dx, dy
+        Args:
+            - dx (float): x translation
+            - dy (float): y translation
+        """
+        self.x1 += dx
+        self.x2 += dx
+        self.y1 += dy
+        self.y2 += dy
 
 
