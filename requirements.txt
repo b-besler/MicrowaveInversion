@@ -1,5 +1,10 @@
-# Devs tools
+# Internal tools
 pbr
 nose
+
+# Numeric tools
 numpy
 matplotlib
+
+# Image processing
+vtk
