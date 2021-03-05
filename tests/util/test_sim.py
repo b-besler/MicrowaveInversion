@@ -4,6 +4,8 @@ import mwi.util.read_config as read_config
 import mwi.util.model as model
 from mwi.util.rx import MeasurementSurface
 import os
+import h5py
+import numpy as np
 
 
 class TestSource(unittest.TestCase):
@@ -39,13 +41,53 @@ class TestSim(unittest.TestCase):
         obj_model = model.Model(read_config.read_model_config(self.model_file), self.rx, self.domain)
         sim.make(obj_model, self.src, 'example' )
 
+        # check there are ntx simulation files
+        files = [f for f in os.listdir("example/"+obj_model.name) if os.path.isfile(os.path.join("example/"+obj_model.name, f))]
+        self.assertTrue(len(files) == obj_model.ntx)
+
+        # read in new and old (example) files
         with open('example/example_model_Tx0.in', 'r') as file:
             prev = file.read()
 
         with open('example/example_model/example_model_Tx0.in', 'r') as file:
             new = file.read()
+
         
+        # compare old and new files        
         self.assertTrue(prev == new)
+
+        # remove new files
+        for f in files:
+            os.remove(os.path.join('example',obj_model.name, f))
+        os.rmdir('example/example_model')
+    
+    def test_write_hdf5(self):
+        obj_model = model.Model(read_config.read_model_config(self.model_file), self.rx, self.domain)
+        data = obj_model.er
+
+        keys = ("data", "rigidE", "rigidH")
+        attrs = ( 'gprMax','dx_dy_dz','title')
+
+        sim.write_hdf5(obj_model, 'example/test.hdf5', data)
+
+        file_new = h5py.File('example/test.hdf5', 'r')
+        file_prev = h5py.File('example/geometry.hdf5','r')
+
+        if not all(k in file_new.keys() for k in keys):
+            raise ValueError('Missing data group')
+        
+        if not all(k in file_new.attrs for k in attrs):
+            raise ValueError('Missing data group')
+            
+        self.assertTrue(np.allclose(file_new["data"], file_prev["data"]))
+        self.assertTrue(np.allclose(file_new["rigidE"], file_prev["rigidE"]))
+        self.assertTrue(np.allclose(file_new["rigidH"], file_prev["rigidH"]))
+
+        
+        file_new.close()
+        file_prev.close()
+        os.remove('example/test.hdf5')
+
 
 
 

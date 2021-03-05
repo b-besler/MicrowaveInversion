@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import pathlib
-
+import h5py
 # functions for gprMax simulation
 
 
@@ -82,3 +82,75 @@ def make(model, src, folder):
         f.write("#geometry_view: 0 0 0 %f %f %f %f %f %f %s n\n"%(model.x_size,model.y_size,model.dx,model.dy,model.dx,model.dx,model.name + '_Tx' + str(i)))
         # output directory (only *.out receiver data)
         f.write("#output_dir: %s" % (model.name + "_output"))
+
+def make_geometry(model):
+        """Create geometry files for gprMax. Consists of text file with material definition and hdf5 images with material indices.
+
+        Arg:
+            model: model object with er/sig images to be written
+        """
+        textFileName = os.path.join(model.folder,model.name,model.name +"_geometry.txt")
+        hdf5FileName = os.path.join(model.folder,model.name,model.name +"_geometry.h5")
+        
+        # round to three decimal places to avoid too many unique permittivities
+        er = np.round(model.er, 3)
+        sig = np.round(model.sig, 3)
+
+        unique_er = np.unique(er) #find unique values
+        E = unique_er.size #number of unique values
+        unique_sig = np.unique(sig)
+        S = unique_sig.size
+
+        data = np.zeros((er.shape[0],er.shape[1])) #initialize arrays
+        mat = np.zeros((E*S,er.shape[0],er.shape[1]))
+
+        f = open(textFileName,"w")
+        
+        k = 0 #material index
+        for i in range(E):
+            for j in range(S):
+                indx_e = (er == unique_er[i]) #image of true where er == unique_er
+                indx_s = (sig == unique_sig[j])
+                indx = np.logical_and(indx_e,indx_s) # image of true where er == unique_er and sig == unique_sig
+                # Only write materials with corresponding er and sig
+                if(np.any(indx)):
+                    # Check whether materials are free space or not
+                    if (abs(unique_er[i]-1) > 0.00001) or (abs(unique_sig[j]-0) > 0.00001): #if properties aren't that of free space
+                        f.write("#material: %f %f 1 0 mat%d\n" %(unique_er[i], unique_sig[j], k)) #write material properties and name (mat[k]) to text
+                        mat[(i+1)*(j+1)-1,::] = indx.astype(int)*k  #write material index (k) to image, one image per material (0 where no index)
+                        k = k+1
+                    else:
+                        mat[(i+1)*j,::] = indx.astype(int)*-1 #free space is index -1
+
+        f.close()
+        data = np.sum(mat,0) #combine material images into one image
+        data = data.T
+        sim.write_hdf5(hdf5FileName, data)  #write material indices to hdf5
+
+def write_hdf5(model, name,data):
+    """Make hdf5 image with gprMax material indices (1-n for each unique material) to define gprMax geometry
+        
+    Args:
+        -model (class): model with information for file format
+        -name (string): full file path including file name and extension for hdf5 file
+        -data (np.ndarray): 2D array with material indices
+
+    Returns:
+        Nothing, but write data to hdf5 with proper formatting for gprMax
+    """
+
+    data2 = np.zeros((data.shape[0],data.shape[1],1),dtype = np.int16)
+    data2[:,:,0]= data.astype(np.int16)
+    E = np.zeros((12,model.er.shape[0],model.er.shape[1],1)) #dummy data
+    dl = np.array([model.dx,model.dy,model.dx])
+
+    # hdf5 format is specific to gprMax
+    # data holds hdf5 image of material indicies, rigidE/H are dummy data, attributes are required metadata
+    f = h5py.File(name,'w')
+    f.create_dataset("data",data=data2)
+    f.create_dataset("rigidE",data=E)
+    f.create_dataset("rigidH",data=E)
+    f.attrs['gprMax']="3.1.5"
+    f.attrs['dx_dy_dz']=dl
+    f.attrs['title'] = model.name
+    f.close()
