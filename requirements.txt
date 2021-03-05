@@ -7,5 +7,5 @@ numpy
 matplotlib
 
 # Image processing
-vtk
+#vtk
 h5py
