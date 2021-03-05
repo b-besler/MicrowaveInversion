@@ -17,7 +17,7 @@ class TestSource(unittest.TestCase):
     
     def test_source_init(self):
         src = sim.Source(read_config.read_meas_config(self.example_file)["signal"])
-        self.assertAlmostEqual(src.t0, 1e-9)
+        self.assertAlmostEqual(src.t0, 5e-9)
         self.assertAlmostEqual(src.f0, 1e9)
         self.assertTrue(src.type == 'gaussiandot')
         self.assertAlmostEqual(src.amp, 1)
@@ -41,9 +41,12 @@ class TestSim(unittest.TestCase):
         obj_model = model.Model(read_config.read_model_config(self.model_file), self.rx, self.domain)
         sim.make(obj_model, self.src, 'example' )
 
-        # check there are ntx simulation files
+        
         files = [f for f in os.listdir("example/"+obj_model.name) if os.path.isfile(os.path.join("example/"+obj_model.name, f))]
-        self.assertTrue(len(files) == obj_model.ntx)
+
+        # check there are ntx simulation files
+        in_files = [f for f in files if f.endswith('.in')]
+        self.assertTrue(len(in_files) == obj_model.ntx)
 
         # read in new and old (example) files
         with open('example/example_model_Tx0.in', 'r') as file:
@@ -87,6 +90,24 @@ class TestSim(unittest.TestCase):
         file_new.close()
         file_prev.close()
         os.remove('example/test.hdf5')
+    
+    def test_make_geometry(self):
+        obj_model = model.Model(read_config.read_model_config(self.model_file), self.rx, self.domain)
+        sim.make_geometry(obj_model, "example")
+
+        with open(os.path.join("example", obj_model.name, obj_model.name + "_geometry.txt"), 'r') as file:
+            prev = file.read()
+
+        with open(os.path.join('example','example_model_geometry.txt'), 'r') as file:
+            new = file.read()
+
+        self.assertTrue(prev == new)
+
+
+
+        
+        
+
 
 
 
