@@ -35,8 +35,11 @@ def make(model, src, folder):
     geom = False
     # if not just free space we have to make a geometry file
     if (np.any(model.er-1 > 0.00001) and np.any(model.sig-0 < 0.00001)):
-            #sim.make_geometry(model)
+            make_geometry(model, folder)
             geom = True
+
+    # translate model so extent is >=0 (gprMax uses >=0 extent)
+    model.translate(-model.x[0], -model.y[0])
         
     #calculate rx/tx locations
     tx = model.rx.calc_tx_discrete(model.dx,model.dy)
@@ -46,6 +49,7 @@ def make(model, src, folder):
     for i in range(model.ntx): 
         # write gprMax simulation file (see example/gpr_max_sim) and gprMax docs for details.
         fileName = os.path.join(folderPath,model.name + '_Tx' + str(i)+".in")
+
             
         f = open(fileName,"w")
             
@@ -83,14 +87,14 @@ def make(model, src, folder):
         # output directory (only *.out receiver data)
         f.write("#output_dir: %s" % (model.name + "_output"))
 
-def make_geometry(model):
+def make_geometry(model, folder):
         """Create geometry files for gprMax. Consists of text file with material definition and hdf5 images with material indices.
 
         Arg:
             model: model object with er/sig images to be written
         """
-        textFileName = os.path.join(model.folder,model.name,model.name +"_geometry.txt")
-        hdf5FileName = os.path.join(model.folder,model.name,model.name +"_geometry.h5")
+        textFileName = os.path.join(folder,model.name,model.name +"_geometry.txt")
+        hdf5FileName = os.path.join(folder,model.name,model.name +"_geometry.h5")
         
         # round to three decimal places to avoid too many unique permittivities
         er = np.round(model.er, 3)
@@ -103,6 +107,9 @@ def make_geometry(model):
 
         data = np.zeros((er.shape[0],er.shape[1])) #initialize arrays
         mat = np.zeros((E*S,er.shape[0],er.shape[1]))
+
+        if not os.path.isdir(os.path.join(folder, model.name)):
+            os.mkdir(os.path.join(folder, model.name))
 
         f = open(textFileName,"w")
         
@@ -125,7 +132,7 @@ def make_geometry(model):
         f.close()
         data = np.sum(mat,0) #combine material images into one image
         data = data.T
-        sim.write_hdf5(hdf5FileName, data)  #write material indices to hdf5
+        write_hdf5(model, hdf5FileName, data)  #write material indices to hdf5
 
 def write_hdf5(model, name,data):
     """Make hdf5 image with gprMax material indices (1-n for each unique material) to define gprMax geometry
@@ -138,7 +145,7 @@ def write_hdf5(model, name,data):
     Returns:
         Nothing, but write data to hdf5 with proper formatting for gprMax
     """
-
+    
     data2 = np.zeros((data.shape[0],data.shape[1],1),dtype = np.int16)
     data2[:,:,0]= data.astype(np.int16)
     E = np.zeros((12,model.er.shape[0],model.er.shape[1],1)) #dummy data
