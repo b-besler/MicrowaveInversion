@@ -26,19 +26,22 @@ def read_model_config(filepath):
         data = json.load(file)
 
     # mandatory keys
-    keys = ("dx", "dy", "x1", "x2", "y1", "y2", "objects")
+    keys = ("dx", "dy", "x1", "x2", "y1", "y2", "objects", "name")
 
     # check they are all there
     if not all(k in data for k in keys):
-        raise ValueError ('Missing configuration variable, check file')
+        raise ValueError ('Missing or misspelled model configuration variable, check file')
     
 
     # check variables
     if data["dx"] <= 0 or data["dy"] <= 0:
-        raise ValueError('Discretization must be greater than 0')
+        raise ValueError('Model discretization must be greater than 0')
 
     if data['x1'] >= data['x2'] or data['y1'] >= data['y2']:
         raise ValueError('Second (x,y) coordinate must be greater than first')
+
+    if not isinstance(data["name"], str):
+        raise ValueError('Model name must be a string')
 
     # check objects have required data
     for obj in data["objects"]:
@@ -109,7 +112,7 @@ def read_meas_config(filepath):
 
     # check they are all there
     if not all(k in data for k in keys):
-        raise ValueError('Missing configuration variable, check file')
+        raise ValueError('Missing or misspelled measurement configuration variable, check file')
     
     keys = ("nr","nt","r")
     # check measurement surface variables are there
@@ -142,6 +145,45 @@ def read_meas_config(filepath):
 
     if not data["signal"]["type"] == 'gaussiandot':
         raise ValueError('Unsupported signal type: ' + data["signal"]["type"])
+
+    return data
+
+def read_domain_config(filepath):
+    """Read image domain configuration .json file. 
+    
+    Example usage: mwi.util.read_config("example/image_domain_config.json")
+
+    Makes sure that neccessary parameters are there and valid
+    Returns full dictionary
+
+    Args:
+        - filepath (str): filepath to .json file from main directory
+
+    Outputs:
+        - data (dict): dictionary holding .json data
+    """
+
+    # check file exists
+    if not os.path.exists(filepath):
+        raise FileNotFoundError('Configuration file ' + filepath + ' does not exist.')
+    
+    # load data
+    with open(filepath) as file:
+        data = json.load(file)
+
+    # mandatory keys
+    keys = ("dx", "dy","x1","x2","y1","y2")
+
+    # check they are all there
+    if not all(k in data for k in keys):
+        raise ValueError('Missing or misspelled image domain configuration variable, check file')
+
+    # check variables
+    if data["dx"] <= 0 or data["dy"] <= 0:
+        raise ValueError('Image discretization must be greater than 0')
+
+    if data['x1'] >= data['x2'] or data['y1'] >= data['y2']:
+        raise ValueError('Second (x,y) coordinate must be greater than first')
 
     return data
 

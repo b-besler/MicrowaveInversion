@@ -15,7 +15,8 @@ class TestReadModelConfig(unittest.TestCase):
             'x1': -0.3, 
             'x2': 0.3, 
             'y1': -0.3, 
-            'y2': 0.3, 
+            'y2': 0.3,
+            'name': "example_model",
             'objects': [
                 {
                     'type': 'background', 'er': 1, 'sig': 0
@@ -46,7 +47,7 @@ class TestReadMeasConfig(unittest.TestCase):
                 'r': 0.15
                 }, 
             'signal': {
-                't0': 1e-09, 
+                't0': 5e-09, 
                 'f0': 1000000000.0, 
                 'type': 'gaussiandot', 
                 'amp': 1

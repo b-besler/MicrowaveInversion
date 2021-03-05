@@ -10,7 +10,7 @@
 	,
 	"signal":
 		{
-			"t0": 1e-9,
+			"t0": 5e-9,
 			"f0": 1e9,
 			"type": "gaussiandot",
 			"amp": 1

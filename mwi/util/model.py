@@ -16,7 +16,7 @@ class Model():
         Args:
             - config (dict): model configuration settings (see example\model_config.json)
             - rx_surface (class): class holding rx information
-            - image_domain (np.ndarray): 2D array holding (x1,y1) and (x2,y2) defining imaging domain
+            - image_domain (class): class holding image domain information
         """
         # assign configuration data to class
         self.dx = config["dx"]
@@ -25,14 +25,17 @@ class Model():
         self.x2 = config["x2"]
         self.y1 = config["y1"]
         self.y2 = config["y2"]
+        self.name = config["name"]
 
         # create 2D image using configuration data
         self.er = self.create_image(config, 'er')
         self.sig = self.create_image(config, 'sig')
 
-        # TODO assign measurement surface
+        # assign measurement surface
         self.rx = rx_surface
-        # TODO assign imaging domain
+
+        # assign image domain
+        self.image_domain = image_domain
 
     #properties
     @property
@@ -168,5 +171,66 @@ class Model():
         """Plot model object using conductivity
         """
         self.plot(self.sig, 'Conductivity')
+
+    def translate(self,dx,dy):
+        """ Translate model and objects by dx, dy
+        Args:
+            - dx (float): x translation
+            - dy (float): y translation
+        """
+
+        self.x1 += dx
+        self.x2 += dx
+        self.y1 += dy
+        self.y2 += dy
+        self.rx.translate(dx,dy)
+        self.image_domain.translate(dx,dy)
+
+class ImageDomain():
+    """Class for informationa and functions to do with the image domain"""
+
+    def __init__(self, domain_config):
+        """Initialize ImageDomain using configuration data
+        Args:
+            - domain_config (dict): configuration data
+        """
+        self.dx = domain_config["dx"]
+        self.dy = domain_config["dy"]
+        self.x1 = domain_config["x1"]
+        self.x2 = domain_config["x2"]
+        self.y1 = domain_config["y1"]
+        self.y2 = domain_config["y2"]
+
+    @property
+    def x_size(self):
+        return self.x2 - self.x1
+
+    @property
+    def y_size(self):
+        return self.y2 - self.y1
+
+    @property
+    def x(self):
+        return np.linspace(self.x1, self.x2, num = math.ceil(self.x_size/self.dx) +1)
+    @property
+    def y(self):
+        return np.linspace(self.y1, self.y2, num = math.ceil(self.y_size/self.dy) +1)
+    @property
+    def x_cell(self):
+        return np.linspace(self.x1 + self.dx/2, self.x2 - self.dx/2, num = math.ceil(self.x_size/self.dx))
+    @property
+    def y_cell(self):
+        return np.linspace(self.y1 + self.dy/2, self.y2 - self.dy/2, num = math.ceil(self.y_size/self.dy))
+
+    def translate(self, dx, dy):
+        """ Translate model and objects by dx, dy
+        Args:
+            - dx (float): x translation
+            - dy (float): y translation
+        """
+        self.x1 += dx
+        self.x2 += dx
+        self.y1 += dy
+        self.y2 += dy
 
 
