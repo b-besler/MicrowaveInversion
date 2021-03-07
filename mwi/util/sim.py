@@ -163,22 +163,25 @@ def write_hdf5(model, name,data):
     f.attrs['title'] = model.name
     f.close()
 
-def run(model, folder):
-    """Runs all simulations in folder using model data
+def run(folder):
+    """Runs all simulations in folder.
     Args:
-        - model (class): model class holding information corresponding to simulation model
         - folder (str): folder holding all the simulation files
+
+    Outputs:
+        - num_run (int): number of simulations run
     """
-    
-    k = 0
-    for i in range(model.ntx):
-        if (os.path.exists(os.path.join(folder, model.name, model.name + '_output', model.name + "_Tx" + str(i) + ".out"))):
-            k += 1
-        else:
+    num_has_info = 0
+    # count simulation that are run (i.e. .in file)
+    num_run = 0
+    for file in os.listdir(folder):
+        if file.endswith(".in"):
             os.chdir("gprMax")
-            result = subprocess.run("python -m gprMax " + os.path.join(folder, model.name, model.name + "_Tx" + str(i) +".in"))
+            result = subprocess.run("python -m gprMax " + os.path.join(folder,file))
             os.chdir("..")
             if not (result.returncode == 0):
                 raise ValueError("gprMax simulation run failed.")
-    if not (k==0):
-        print("Skipped "+ str(k) + " simulations in " + model.name + " because they have results.")    
+            else:
+                num_run += 1
+    
+    return num_run
