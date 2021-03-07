@@ -114,10 +114,9 @@ class TestSim(unittest.TestCase):
         self.assertTrue(result.returncode == 0)
     
     def test_run_sim(self):
-        example_sim_path = os.path.abspath(os.path.join(os.getcwd(), "user_models"))
-        obj_model = model.Model(read_config.read_model_config(self.model_file), self.rx, self.domain)
+        example_sim_path = os.path.abspath(os.path.join(os.getcwd(), "models", "example_model"))
         num = sim.run(example_sim_path)
-        self.assertTrue(num == 11)
+        self.assertTrue(num == 4)
 
 
 
