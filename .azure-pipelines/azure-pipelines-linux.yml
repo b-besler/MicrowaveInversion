@@ -20,6 +20,13 @@ jobs:
         pip install -e .
     displayName: Setup conda
   - script: |
+        conda activate mwi
+        git clone https://github.com/gprMax/gprMax.git
+        cd gprMax
+        python setup.py build
+        python setup.py install
+    displayName: Setup gprMax
+  - script: |
         source activate mwi
         nosetests tests
     displayName: Run tests
