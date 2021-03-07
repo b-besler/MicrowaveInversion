@@ -15,12 +15,12 @@ jobs:
     displayName: Add conda to path
   - script: |
         conda create -y -n mwi python=$(python.version)
-        conda activate mwi
+        source activate mwi
         conda install -y --file requirements.txt
         pip install -e .
     displayName: Setup conda
   - script: |
-        conda activate mwi
+        source activate mwi
         git clone https://github.com/gprMax/gprMax.git
         cd gprMax
         python setup.py build
