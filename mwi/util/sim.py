@@ -2,6 +2,7 @@ import numpy as np
 import os
 import pathlib
 import h5py
+import subprocess
 # functions for gprMax simulation
 
 
@@ -161,3 +162,23 @@ def write_hdf5(model, name,data):
     f.attrs['dx_dy_dz']=dl
     f.attrs['title'] = model.name
     f.close()
+
+def run(model, folder):
+    """Runs all simulations in folder using model data
+    Args:
+        - model (class): model class holding information corresponding to simulation model
+        - folder (str): folder holding all the simulation files
+    """
+    
+    k = 0
+    for i in range(model.ntx):
+        if (os.path.exists(os.path.join(folder, model.name, model.name + '_output', model.name + "_Tx" + str(i) + ".out"))):
+            k += 1
+        else:
+            os.chdir("gprMax")
+            result = subprocess.run("python -m gprMax " + os.path.join(folder, model.name, model.name + "_Tx" + str(i) +".in"))
+            os.chdir("..")
+            if not (result.returncode == 0):
+                raise ValueError("gprMax simulation run failed.")
+    if not (k==0):
+        print("Skipped "+ str(k) + " simulations in " + model.name + " because they have results.")    

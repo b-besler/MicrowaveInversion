@@ -6,6 +6,7 @@ from mwi.util.rx import MeasurementSurface
 import os
 import h5py
 import numpy as np
+import subprocess
 
 
 class TestSource(unittest.TestCase):
@@ -102,6 +103,22 @@ class TestSim(unittest.TestCase):
             new = file.read()
 
         self.assertTrue(prev == new)
+
+    def test_sim_run_example_gprMax(self):
+        # test gprMax install is working ok
+        # TODO not very clean... have gprMax module is installed in the gprMax directory...
+        example_gpr_max_sim = os.path.join("user_models","cylinder_Ascan_2D.in")
+        os.chdir("gprMax")
+        result = subprocess.run("python -m gprMax " + example_gpr_max_sim)
+        os.chdir("..")
+        self.assertTrue(result.returncode == 0)
+    
+    def test_run_sim(self):
+        example_sim_path = os.path.abspath(os.path.join("models","example"))
+        obj_model = model.Model(read_config.read_model_config(self.model_file), self.rx, self.domain)
+        sim.run(obj_model, example_sim_path)
+
+
 
 
 
