@@ -18,8 +18,16 @@ jobs:
         conda create -y -n mwi python=$(python.version)
         call activate mwi
         conda install -y --file requirements.txt
+        pip install terminaltables tqdm
         pip install -e .
     displayName: Setup conda
+  - script: |
+        call activate mwi
+        git clone https://github.com/gprMax/gprMax.git
+        cd gprMax
+        python setup.py build
+        python setup.py install
+    displayName: Setup gprMax
   - script: |
         call activate mwi
         python -m nose tests

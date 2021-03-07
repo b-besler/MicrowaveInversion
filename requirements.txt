@@ -9,3 +9,11 @@ matplotlib
 # Image processing
 #vtk
 h5py
+
+# gprMax
+colorama
+cython
+jupyter
+pip
+psutil
+scipy
