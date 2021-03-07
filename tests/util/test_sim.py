@@ -114,7 +114,7 @@ class TestSim(unittest.TestCase):
         self.assertTrue(result.returncode == 0)
     
     def test_run_sim(self):
-        shutil.copytree(os.path.join("models","example_model"), os.path.join("gprMax","user_models","example_model"), dirs_exist_ok = True)
+        shutil.copytree(os.path.join("models","example_model"), os.path.join("gprMax","user_models","example_model"))
         example_sim_path = os.path.join("user_models","example_model")
         num = sim.run(example_sim_path)
         self.assertTrue(num == 4)
