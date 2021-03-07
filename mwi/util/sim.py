@@ -171,7 +171,6 @@ def run(folder):
     Outputs:
         - num_run (int): number of simulations run
     """
-    num_has_info = 0
     # count simulation that are run (i.e. .in file)
     num_run = 0
     for file in os.listdir(folder):
@@ -183,5 +182,6 @@ def run(folder):
                 raise ValueError("gprMax simulation run failed.")
             else:
                 num_run += 1
+
     
     return num_run
