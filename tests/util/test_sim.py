@@ -7,7 +7,7 @@ import os
 import h5py
 import numpy as np
 import subprocess
-
+import shutil
 
 class TestSource(unittest.TestCase):
     example_file = "example/measurement_config.json"
@@ -114,7 +114,8 @@ class TestSim(unittest.TestCase):
         self.assertTrue(result.returncode == 0)
     
     def test_run_sim(self):
-        example_sim_path = os.path.join(os.getcwd(),"models","example_model")
+        shutil.copytree(os.path.join("models","example_model"), os.path.join("gprMax","user_models","example_model"), dirs_exist_ok = True)
+        example_sim_path = os.path.join("user_models","example_model")
         num = sim.run(example_sim_path)
         self.assertTrue(num == 4)
 

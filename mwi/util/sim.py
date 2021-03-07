@@ -173,7 +173,7 @@ def run(folder):
     """
     # count simulation that are run (i.e. .in file)
     num_run = 0
-    for file in os.listdir(folder):
+    for file in os.listdir(os.path.join("gprMax",folder)):
         if file.endswith(".in"):
             os.chdir("gprMax")
             result = subprocess.run("python -m gprMax " + os.path.join(folder,file))
@@ -183,5 +183,4 @@ def run(folder):
             else:
                 num_run += 1
 
-    
     return num_run
