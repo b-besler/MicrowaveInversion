@@ -177,7 +177,7 @@ def run(folder):
     for file in os.listdir(os.path.join("gprMax",folder)):
         if file.endswith(".in"):
             os.chdir("gprMax")
-            result = subprocess.run("python -m gprMax " + os.path.join(folder,file))
+            result = subprocess.run(["python", "-m",  "gprMax", os.path.join(folder,file)])
             os.chdir("..")
             if not (result.returncode == 0):
                 raise ValueError("gprMax simulation run failed.")

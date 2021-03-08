@@ -119,16 +119,3 @@ class TestSim(unittest.TestCase):
         sim.make(obj_model, self.src, 'gprMax/user_models' )
         num = sim.run("user_models/"+obj_model.name)
         self.assertTrue(num == 4)
-
-
-
-
-
-        
-        
-
-
-
-
-
-        
