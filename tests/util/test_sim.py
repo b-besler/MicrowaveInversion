@@ -7,7 +7,7 @@ import os
 import h5py
 import numpy as np
 import subprocess
-
+import shutil
 
 class TestSource(unittest.TestCase):
     example_file = "example/measurement_config.json"
@@ -28,9 +28,10 @@ class TestSim(unittest.TestCase):
     model_file = "example/model_config.json"
     domain_file = "example/image_domain.json"
 
-    rx = MeasurementSurface(read_config.read_meas_config(example_file)["measurement_surface"])
-    domain = model.ImageDomain(read_config.read_domain_config(domain_file))
-    src = sim.Source(read_config.read_meas_config(example_file)["signal"])
+    def setUp(self):
+        self.src = sim.Source(read_config.read_meas_config(self.example_file)["signal"])
+        self.rx = MeasurementSurface(read_config.read_meas_config(self.example_file)["measurement_surface"])
+        self.domain = model.ImageDomain(read_config.read_domain_config(self.domain_file))
 
     def test_file_exists(self):
         # test that file exists
@@ -114,8 +115,9 @@ class TestSim(unittest.TestCase):
         self.assertTrue(result.returncode == 0)
     
     def test_run_sim(self):
-        example_sim_path = os.path.abspath(os.path.join(os.getcwd(), "models", "example_model"))
-        num = sim.run(example_sim_path)
+        obj_model = model.Model(read_config.read_model_config(self.model_file), self.rx, self.domain)
+        sim.make(obj_model, self.src, 'gprMax/user_models' )
+        num = sim.run("user_models/"+obj_model.name)
         self.assertTrue(num == 4)
 
 

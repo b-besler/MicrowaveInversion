@@ -53,7 +53,7 @@ def make(model, src, folder):
 
             
         f = open(fileName,"w")
-            
+        
         f.write("#title: %s\n" % model.name) #write title
         f.write("#domain: %f %f %f\n" % (model.x_size, model.y_size, model.dx)) #domain extent command
         f.write("#dx_dy_dz: %f %f %f\n" % (model.dx, model.dx, model.dx)) #discretization command
@@ -87,6 +87,7 @@ def make(model, src, folder):
         f.write("#geometry_view: 0 0 0 %f %f %f %f %f %f %s n\n"%(model.x_size,model.y_size,model.dx,model.dy,model.dx,model.dx,model.name + '_Tx' + str(i)))
         # output directory (only *.out receiver data)
         f.write("#output_dir: %s" % (model.name + "_output"))
+        f.close()
 
 def make_geometry(model, folder):
         """Create geometry files for gprMax. Consists of text file with material definition and hdf5 images with material indices.
@@ -171,10 +172,9 @@ def run(folder):
     Outputs:
         - num_run (int): number of simulations run
     """
-    num_has_info = 0
     # count simulation that are run (i.e. .in file)
     num_run = 0
-    for file in os.listdir(folder):
+    for file in os.listdir(os.path.join("gprMax",folder)):
         if file.endswith(".in"):
             os.chdir("gprMax")
             result = subprocess.run("python -m gprMax " + os.path.join(folder,file))
@@ -183,5 +183,5 @@ def run(folder):
                 raise ValueError("gprMax simulation run failed.")
             else:
                 num_run += 1
-    
+
     return num_run
