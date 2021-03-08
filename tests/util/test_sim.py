@@ -110,8 +110,9 @@ class TestSim(unittest.TestCase):
         # TODO not very clean... have gprMax module is installed in the gprMax directory...
         example_gpr_max_sim = os.path.join("user_models","cylinder_Ascan_2D.in")
         os.chdir("gprMax")
-        result = subprocess.run(["python", "-m", "gprMax ", example_gpr_max_sim])
+        result = subprocess.run(["python", "-m", "gprMax", example_gpr_max_sim])
         os.chdir("..")
+        print(result.returncode)
         self.assertTrue(result.returncode == 0)
     
     def test_run_sim(self):
