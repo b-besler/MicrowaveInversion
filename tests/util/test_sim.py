@@ -51,10 +51,10 @@ class TestSim(unittest.TestCase):
         self.assertTrue(len(in_files) == obj_model.ntx)
 
         # read in new and old (example) files
-        with open('example/example_model_Tx0.in', 'r') as file:
+        with open('example/example_model_Tx000.in', 'r') as file:
             prev = file.read()
 
-        with open('example/example_model/example_model_Tx0.in', 'r') as file:
+        with open('example/example_model/example_model_Tx000.in', 'r') as file:
             new = file.read()
 
         

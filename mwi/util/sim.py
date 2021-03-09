@@ -49,7 +49,7 @@ def make(model, src, folder):
     #different simulation file (*.in) for each tx
     for i in range(model.ntx): 
         # write gprMax simulation file (see example/gpr_max_sim) and gprMax docs for details.
-        fileName = os.path.join(folderPath,model.name + '_Tx' + str(i)+".in")
+        fileName = os.path.join(folderPath,model.name + '_Tx' + f'{i:03d}' + ".in")
 
             
         f = open(fileName,"w")
