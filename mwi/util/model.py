@@ -46,16 +46,16 @@ class Model():
         return self.y2 - self.y1
     @property
     def x(self):
-        return np.linspace(self.x1, self.x2, num = math.ceil(self.x_size/self.dx) +1)
+        return np.linspace(self.x1, self.x2, num = int(round(self.x_size/self.dx,1)) +1)
     @property
     def y(self):
-        return np.linspace(self.y1, self.y2, num = math.ceil(self.y_size/self.dy) +1)
+        return np.linspace(self.y1, self.y2, num = int(round(self.y_size/self.dy,1)) +1)
     @property
     def x_cell(self):
-        return np.linspace(self.x1 + self.dx/2, self.x2 - self.dx/2, num = math.ceil(self.x_size/self.dx))
+        return np.linspace(self.x1 + self.dx/2, self.x2 - self.dx/2, num = int(round(self.x_size/self.dx, 1)))
     @property
     def y_cell(self):
-        return np.linspace(self.y1 + self.dy/2, self.y2 - self.dy/2, num = math.ceil(self.y_size/self.dy))
+        return np.linspace(self.y1 + self.dy/2, self.y2 - self.dy/2, num = int(round(self.y_size/self.dy, 1)))
     @property
     def nrx(self):
         return self.rx.nrx
@@ -211,16 +211,16 @@ class ImageDomain():
 
     @property
     def x(self):
-        return np.linspace(self.x1, self.x2, num = math.ceil(self.x_size/self.dx) +1)
+        return np.linspace(self.x1, self.x2, num = int(round(self.x_size/self.dx, 1)) +1)
     @property
     def y(self):
-        return np.linspace(self.y1, self.y2, num = math.ceil(self.y_size/self.dy) +1)
+        return np.linspace(self.y1, self.y2, num = int(round(self.y_size/self.dy, 1)) +1)
     @property
     def x_cell(self):
-        return np.linspace(self.x1 + self.dx/2, self.x2 - self.dx/2, num = math.ceil(self.x_size/self.dx))
+        return np.linspace(self.x1 + self.dx/2, self.x2 - self.dx/2, num = int(round(self.x_size/self.dx, 1)))
     @property
     def y_cell(self):
-        return np.linspace(self.y1 + self.dy/2, self.y2 - self.dy/2, num = math.ceil(self.y_size/self.dy))
+        return np.linspace(self.y1 + self.dy/2, self.y2 - self.dy/2, num = int(round(self.y_size/self.dy, 1)))
 
     def translate(self, dx, dy):
         """ Translate model and objects by dx, dy
