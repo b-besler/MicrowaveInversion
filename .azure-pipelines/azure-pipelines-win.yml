@@ -9,8 +9,8 @@ jobs:
         python.version: '3.6'
       Python37:
         python.version: '3.7'
-      Python38:
-        python.version: '3.8'
+      #Python38:
+        #python.version: '3.8' #vtk doesn't work for python 3.8 yet..
   steps:
   - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
     displayName: Add conda to path
