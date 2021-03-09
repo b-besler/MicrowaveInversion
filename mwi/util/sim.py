@@ -40,7 +40,9 @@ def make(model, src, folder):
             geom = True
 
     # translate model so extent is >=0 (gprMax uses >=0 extent)
-    model.translate(-model.x[0], -model.y[0])
+    x_trans = -model.x[0]
+    y_trans = -model.y[0]
+    model.translate(x_trans, y_trans)
         
     #calculate rx/tx locations
     tx = model.rx.calc_tx_discrete(model.dx,model.dy)
@@ -88,6 +90,8 @@ def make(model, src, folder):
         # output directory (only *.out receiver data)
         f.write("#output_dir: %s" % (model.name + "_output"))
         f.close()
+    # translate model back to original location
+    model.translate(-x_trans, -y_trans)
 
 def make_geometry(model, folder):
         """Create geometry files for gprMax. Consists of text file with material definition and hdf5 images with material indices.
