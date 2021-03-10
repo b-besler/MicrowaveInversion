@@ -43,13 +43,13 @@ def form_data_operator(model, hank_int, field, field_freq):
         - data_operator (np.ndarray): matrix that relates contrast to measured scattered fields (size: [ntx x nrx x nf] x  [ny x nx])
     """
     # find indices of angles to exlude
-    angle_idx = np.zeros((4,4), dtype = bool)#model.rx.is_too_close(model.image_domain.ex_angle)
+    angle_idx = model.rx.is_too_close(model.image_domain.ex_angle)
 
     nx = model.image_domain.x_cell.size
     ny = model.image_domain.y_cell.size
 
     data_operator = np.zeros((model.ntx* (model.nrx - np.sum(angle_idx, axis=0)[0]) * model.nf, ny * nx), dtype=complex)
-    print(data_operator.shape)
+
     (f_nearest, f_field_idx) = find_nearest(field_freq, model.freq)
 
     idx = 0

@@ -70,7 +70,7 @@ class TestFormDataOperator(unittest.TestCase):
         hank_int = np.zeros((4, 100, 20 ,20))
         data_operator = calc.form_data_operator(self.model, hank_int, e_field, freq)
 
-        self.assertTrue(data_operator.shape == (4* 4* 1, 20* 20))
+        self.assertTrue(data_operator.shape == (3* 4* 1, 20* 20))
     # TODO add recursive test to test funcitonality
     
 
