@@ -65,6 +65,9 @@ class Model():
     @property
     def freq(self):
         return self.image_domain.freq
+    @property
+    def nf(self):
+        return self.image_domain.freq.size
 
     def create_image(self, config, prop):
         """Create 2D numpy image of property using objects in configuration
