@@ -206,7 +206,8 @@ class ImageDomain():
         self.x2 = domain_config["x2"]
         self.y1 = domain_config["y1"]
         self.y2 = domain_config["y2"]
-        self.freq = np.asarray(domain_config["freq"])
+        self.freq = np.asarray(domain_config["recon_freq"])
+        self.ex_angle = domain_config["exclu_angle"] * np.pi / 180
 
     @property
     def x_size(self):
