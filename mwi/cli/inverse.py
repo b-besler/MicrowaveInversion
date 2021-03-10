@@ -1,10 +1,12 @@
 import argparse
 import numpy as np
+import os
 
 from mwi.util import read_config
 from mwi.util import model
 from mwi.util.rx import MeasurementSurface
 import mwi.util.sim as sim
+import mwi.util.read_gprMax as read_gprMax
 
 
 def inverse(model_config_file, prior_config_file, meas_config_file, output_folder, image_config_file):
@@ -26,7 +28,10 @@ def inverse(model_config_file, prior_config_file, meas_config_file, output_folde
     
     src = sim.Source(meas_data["signal"])
     sim.make(obj_model, src, output_folder)
+    num_run = sim.run(os.path.join(os.path.abspath(output_folder), obj_model.name))
 
+    (data_t, t, data_f, freq) = read_gprMax.read_out_data(os.path.join(output_folder, obj_model.name, obj_model.name + "_output"))
+    (field_t, field_time, field_f, field_freq) = read_gprMax.read_snapshots(os.path.join(output_folder, obj_model.name))
 
 def main():
     description ='''Microwave Inverse
