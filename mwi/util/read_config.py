@@ -172,7 +172,7 @@ def read_domain_config(filepath):
         data = json.load(file)
 
     # mandatory keys
-    keys = ("dx", "dy","x1","x2","y1","y2")
+    keys = ("dx", "dy","x1","x2","y1","y2","recon_freq","exclu_angle")
 
     # check they are all there
     if not all(k in data for k in keys):

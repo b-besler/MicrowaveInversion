@@ -125,6 +125,9 @@ class TestImageDomain(unittest.TestCase):
         self.assertAlmostEqual(domain.dy, 0.01)
         self.assertAlmostEqual(domain.x_size, 0.2)
         self.assertAlmostEqual(domain.y_size, 0.2)
+        self.assertAlmostEqual(domain.freq.size, 1)
+        self.assertAlmostEqual(domain.freq[0], 1e9)
+        self.assertAlmostEqual(domain.ex_angle, 90 * np.pi /180)
         
     def test_domain_translate(self):
         domain = model.ImageDomain(read_domain_config(self.example_file))

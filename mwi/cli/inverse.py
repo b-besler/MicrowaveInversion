@@ -1,12 +1,14 @@
 import argparse
 import numpy as np
 import os
+from matplotlib import pyplot as plt
 
 from mwi.util import read_config
 from mwi.util import model
 from mwi.util.rx import MeasurementSurface
 import mwi.util.sim as sim
 import mwi.util.read_gprMax as read_gprMax
+import mwi.util.calc as calc
 
 
 def inverse(model_config_file, prior_config_file, meas_config_file, output_folder, image_config_file):
@@ -32,6 +34,10 @@ def inverse(model_config_file, prior_config_file, meas_config_file, output_folde
 
     (data_t, t, data_f, freq) = read_gprMax.read_out_data(os.path.join(output_folder, obj_model.name, obj_model.name + "_output"))
     (field_t, field_time, field_f, field_freq) = read_gprMax.read_snapshots(os.path.join(output_folder, obj_model.name))
+
+    hank_int = calc.hankel_integral(obj_model)
+
+    data_op = calc.form_data_operator(obj_model, hank_int, field_f, field_freq)
 
 def main():
     description ='''Microwave Inverse
