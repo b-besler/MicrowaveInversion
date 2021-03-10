@@ -31,4 +31,19 @@ class TestCalcHankInt(unittest.TestCase):
         self.assertTrue(hank_int.shape[2] == self.model.image_domain.y_cell.size)
         self.assertTrue(hank_int.shape[3] == self.model.image_domain.x_cell.size)
 
+class TestFindNearest(unittest.TestCase):
+    def test_nearest_value(self):
+        array = np.linspace(0, 10, num = 11)
+        values = np.array([0.1, 5.6])
+
+        (nearest_val, idx) = calc.find_nearest(array, values)
+
+        print(nearest_val)
+        print(idx)
+
+        self.assertAlmostEqual(nearest_val[0], 0.0)
+        self.assertAlmostEqual(nearest_val[1], 6.0)
+        self.assertEqual(idx[0], 0)
+        self.assertEqual(idx[1], 6)
+
 

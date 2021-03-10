@@ -32,4 +32,15 @@ def hankel_integral(model):
                     hank_int[i,j,L,k] = -1j/4 * (2*np.pi*a)/kj * special.jv(1, kj*a) * special.hankel2(0, kj*rho)
     return hank_int
 
-
+def find_nearest(array,value):
+    """ findes closest element in array to value, returns the value it found the index. Array must be sorted
+    Args:
+        - array (np.ndarray): sorted array of floats
+        - value (np.ndarray): array of floats to find nearest value
+    Outputs:
+        - nearest_val: closest value
+        - idx: indices corresponding to nearest values
+    """
+    idx = np.searchsorted(array, value, side="left")
+    idx = idx - (np.abs(value - array[idx-1]) < np.abs(value - array[idx]))
+    return (array[idx],idx)
