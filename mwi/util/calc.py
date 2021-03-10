@@ -28,9 +28,42 @@ def hankel_integral(model):
             kj = 2*np.pi*f/constants.C0
             for L in range(model.image_domain.y_cell.size):
                 for k in range(model.image_domain.x_cell.size):
-                    rho = np.sqrt((rx_x[i] - model.image_domain.x_cell[k])**2 + (rx_y[i] - model.image_domain.y_cell[L]))
+                    rho = np.sqrt((rx_x[i] - model.image_domain.x_cell[k])**2 + (rx_y[i] - model.image_domain.y_cell[L])**2)
                     hank_int[i,j,L,k] = -1j/4 * (2*np.pi*a)/kj * special.jv(1, kj*a) * special.hankel2(0, kj*rho)
     return hank_int
+
+def form_data_operator(model, hank_int, field, field_freq):
+    """Forms the data operator matrix used for inverse. M matrix in Moghaddam + Chew 1992.
+    Args:
+        - model (class): class holding model information including imaging domain
+        - hankel_int (np.ndarray): matrix holding hankel function integrals (i.e. homogenous 2D Green's function)
+        - field (np.ndarray): matrix holding field information
+        - field_freq (np.ndarray): vector with frequencies corresponding to field data
+    Output:
+        - data_operator (np.ndarray): matrix that relates contrast to measured scattered fields (size: [ntx x nrx x nf] x  [ny x nx])
+    """
+    # find indices of angles to exlude
+    angle_idx = np.zeros((4,4), dtype = bool)#model.rx.is_too_close(model.image_domain.ex_angle)
+
+    nx = model.image_domain.x_cell.size
+    ny = model.image_domain.y_cell.size
+
+    data_operator = np.zeros((model.ntx* (model.nrx - np.sum(angle_idx, axis=0)[0]) * model.nf, ny * nx), dtype=complex)
+    print(data_operator.shape)
+    (f_nearest, f_field_idx) = find_nearest(field_freq, model.freq)
+
+    idx = 0
+    for i in range(model.nrx):
+        for j in range(model.ntx):
+            # skip rx/tx that are too close
+            if (not angle_idx[i,j]):
+                for k in range(model.nf):
+                    f = model.freq[k]
+                    image = (constants.E0 * (2*np.pi*f)**2 * constants.MU0 * field[j,f_field_idx[k], : :] * hank_int[j, k, :, :])
+                    data_operator[idx, :] = image.flatten()
+                    idx += 1
+    
+    return data_operator
 
 def find_nearest(array,value):
     """ findes closest element in array to value, returns the value it found the index. Array must be sorted
