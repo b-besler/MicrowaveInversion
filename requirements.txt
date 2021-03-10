@@ -5,7 +5,6 @@ nose
 # Numeric tools
 numpy
 matplotlib
-scipy
 
 # Image processing
 vtk
@@ -17,3 +16,4 @@ cython
 jupyter
 pip
 psutil
+scipy
