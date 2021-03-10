@@ -62,6 +62,9 @@ class Model():
     @property
     def ntx(self):
         return self.rx.ntx
+    @property
+    def freq(self):
+        return self.image_domain.freq
 
     def create_image(self, config, prop):
         """Create 2D numpy image of property using objects in configuration
@@ -200,6 +203,7 @@ class ImageDomain():
         self.x2 = domain_config["x2"]
         self.y1 = domain_config["y1"]
         self.y2 = domain_config["y2"]
+        self.freq = np.asarray(domain_config["freq"])
 
     @property
     def x_size(self):
