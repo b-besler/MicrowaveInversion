@@ -45,3 +45,76 @@ def read_out_data(folder):
     freq = np.fft.fftshift(np.fft.fftfreq(iterations, dt))[int(iterations/2):-1]
 
     return (rx_data, time, rx_data_f, freq)
+
+def read_snapshots(folder):
+    """Function to read field data (snapshots) from gprMax (.vti files). Currently only reads in Ez data.
+    Args:
+        - model (class): class holding information about simulation
+        - folder (str): 
+
+    Outputs:
+        - field_data (np.ndarray): ntx x nrx x ny x nx array with field data
+    """
+    # this value is hard coded in the gprMax setup.... TODO define dynamically (maybe read from .in file?)
+    dt = 5e-11
+
+    # get the snapshot folders, one for each tx
+    files = os.listdir(folder)
+    snap_folders = [f for f in  files if "_snaps" in f]
+
+    ntx = len(snap_folders)
+
+    if ntx == 0:
+        raise FileNotFoundError('Could not find snapshot folder')
+
+    # get snapshot files (.vti) in the first folder. one snapshot for each iteration saved
+    snapshots = os.listdir(os.path.join(folder, snap_folders[0]))
+    snapshots = [f for f in snapshots if ".vti" in f]
+    num = len(snapshots)
+
+    if num == 0:
+        raise FileNotFoundError('Could not find .vti files')
+
+    # read in one .vti to get image size
+    reader = vtk.vtkXMLImageDataReader()
+    reader.SetFileName(os.path.join(folder, snap_folders[0], snapshots[0]))
+    reader.Update()
+    image = reader.GetOutput()
+    print(image.GetDimensions())
+
+    nx = image.GetDimensions()[0] -1
+    ny = image.GetDimensions()[1] -1
+
+    if nx <= 0 or ny <= 0:
+        raise ValueError("Invalid image dimensions. Must be greater than 0")
+
+    # initialize arrays
+    time = np.linspace(0, (num - 1) * dt, num=num)
+    data = np.zeros((ntx, num, ny, nx))
+    data_f = np.zeros((ntx, int(num/2), ny, nx), dtype = np.complex_)
+    
+    # iterate through each folder and each .vti file
+    i = 0
+    for snap_folder in snap_folders:
+            for j in range(len(os.listdir(os.path.join(folder, snap_folder)))):
+                # setup vtk read
+                reader = vtk.vtkXMLImageDataReader()
+                reader.SetFileName(os.path.join(folder, snap_folder, "snapshot" + str(j+1) + ".vti"))
+                reader.Update()
+                # convert vti image to numpy array (Ez is component 3)
+                image = reader.GetOutput().GetCellData().GetArray("E-field")
+                array = vtk_to_numpy(image)
+                array = array[:,2]
+
+                data[i, j, :, :] = array.reshape((ny, nx))
+            i += 1
+
+    # do fft of each pixel over time. TODO probably a faster way to do this...
+    for i in range(ntx):
+        for j in range(ny):
+            for k in range(nx):
+                data_f[i, :, j, k] = np.fft.fftshift(np.fft.fft(data[i, :, j, k]))[int(num/2):-1]
+    
+    freq = np.fft.fftshift(np.fft.fftfreq(num, dt))[int(num/2):-1]
+
+    return (data, time, data_f, freq)
