@@ -9,7 +9,13 @@ Algorithms for inverse microwave problems.
 
 Developer Install
 =================
-Creates conda environment `mwi` to work from
+Clone repository to local machine:
+
+.. code-block:: base
+
+  $ git clone https://github.com/b-besler/MicrowaveInversion.git
+
+Create conda environment `mwi` to work from:
 
 .. code-block:: bash
 
