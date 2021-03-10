@@ -28,7 +28,6 @@ def read_out_data(folder):
 
     rx_data = np.zeros((len(out_files), nrx, iterations))
     rx_data_f = np.zeros((len(out_files), nrx, int(iterations/2)), dtype = np.complex_)
-    print(folder)
     
     i = 0
     for file in out_files:
@@ -38,7 +37,6 @@ def read_out_data(folder):
             path = "/rxs/rx" + str(i+1) + "/"
             # read in Ez data
             rx_data[i, :, :] = f[path]["Ez"]
-            print(np.ceil(iterations/2))
             rx_data_f[i, :, :] = np.fft.fftshift(np.fft.fft(rx_data[i, :, :]))[:,int(iterations/2):-1]
             i += 1
     
@@ -80,7 +78,6 @@ def read_snapshots(folder):
     reader.SetFileName(os.path.join(folder, snap_folders[0], snapshots[0]))
     reader.Update()
     image = reader.GetOutput()
-    print(image.GetDimensions())
 
     nx = image.GetDimensions()[0] -1
     ny = image.GetDimensions()[1] -1
