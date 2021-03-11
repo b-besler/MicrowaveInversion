@@ -30,14 +30,30 @@ def inverse(model_config_file, prior_config_file, meas_config_file, output_folde
     
     src = sim.Source(meas_data["signal"])
     sim.make(obj_model, src, output_folder)
-    num_run = sim.run(os.path.join(os.path.abspath(output_folder), obj_model.name))
+    sim.run(os.path.join(os.path.abspath(output_folder), obj_model.name))
 
-    (data_t, t, data_f, freq) = read_gprMax.read_out_data(os.path.join(output_folder, obj_model.name, obj_model.name + "_output"))
-    (field_t, field_time, field_f, field_freq) = read_gprMax.read_snapshots(os.path.join(output_folder, obj_model.name))
+    bkgrd_model = model.Model(prior_data, rx, image_domain)
+    bkgrd_model.plot_er()
+    sim.make(bkgrd_model, src, output_folder)
+    sim.run(os.path.join(os.path.abspath(output_folder), bkgrd_model.name))
 
-    hank_int = calc.hankel_integral(obj_model)
+    (_, _, total_data_f, _) = read_gprMax.read_out_data(os.path.join(output_folder, obj_model.name, obj_model.name + "_output"))
+    (inc_data, _, inc_data_f, freq) = read_gprMax.read_out_data(os.path.join(output_folder, bkgrd_model.name, bkgrd_model.name + "_output"))
+    (_, _, field_f, field_freq) = read_gprMax.read_snapshots(os.path.join(output_folder, bkgrd_model.name))
 
-    data_op = calc.form_data_operator(obj_model, hank_int, field_f, field_freq)
+    s_data_f = total_data_f - inc_data_f
+    s_data_f = calc.select_data(bkgrd_model, s_data_f, freq)
+	
+    hank_int = calc.hankel_integral(bkgrd_model)
+    data_op = calc.form_data_operator(bkgrd_model, hank_int, field_f, field_freq)
+	
+    (res_norm, soln_norm, gamma) = calc.L_curve(s_data_f, data_op, 100)
+    (opt_gamma, gamma_idx) = calc.L_curve_knee(np.log10(res_norm), np.log10(soln_norm), gamma)
+	
+    plt.loglog(res_norm, soln_norm)
+    plt.loglog(res_norm[gamma_idx], soln_norm[gamma_idx], 'r.', label = "gamma = " + str(opt_gamma))
+    plt.grid()
+    plt.show()
 
 def main():
     description ='''Microwave Inverse
