@@ -142,3 +142,17 @@ class TestLCurve(unittest.TestCase):
         kappa = np.nan_to_num(kappa, nan=1.0)
         
         self.assertTrue(np.all(np.abs(np.ones(x.size) - kappa) < 0.0001))
+
+    def test_knee_point(self):
+        # Not representative of L-curve data, but analytic example
+        t = np.linspace(-10, 10, num = 201)
+        x = -t**2
+        y = t
+
+        (t_max_curve, t_idx) = calc.L_curve_knee(x,y,t)
+
+        print(t_max_curve)
+        print(t_idx)
+
+        self.assertAlmostEqual(t_max_curve, 0)
+        self.assertEqual(t_idx, 100)

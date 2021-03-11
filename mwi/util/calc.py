@@ -101,6 +101,28 @@ def L_curve(rx_data, data_operator, n_gamma):
 
     return (res_norm, soln_norm, gamma)
 
+def L_curve_knee(res, soln, gamma):
+    """ Find the knee point (maximum curvature) of L-curve
+
+    Args:
+        - res (np.ndarray): residual norms for each gamma
+        - soln (np.ndarray): solution norms for each gamma
+        - gamma (np.ndarray): regularization parameter gamma
+
+    Output:
+        - gamma_max (float): gamma of maximum curvature
+        - idx (int): index corresponding to gamma
+    """
+
+    kappa = curvature(res, soln, gamma, 5, 5)
+
+    # any NAN replace with 0
+    kappa = np.nan_to_num(kappa)
+
+    idx = np.argmax(kappa)
+
+    return (gamma[idx], idx)
+
 def find_nearest(array,value):
     """ findes closest element in array to value, returns the value it found the index. Array must be sorted
     Args:
