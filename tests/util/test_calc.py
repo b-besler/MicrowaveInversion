@@ -74,7 +74,26 @@ class TestFormDataOperator(unittest.TestCase):
     # TODO add recursive test to test funcitonality
     
 
-class TestLCurve(unittest.TestCase):	
+class TestLCurve(unittest.TestCase):
+
+    def test_L_curve(self):
+        data_operator = np.array([
+            [1+1j, 2+2j, 3+3j],
+            [2+2j, 3+3j, 4+4j]
+        ])
+
+        x = np.array([1+1j, 2+2j])
+
+        n = 10
+
+        (res_norm, soln_norm, gamma) = calc.L_curve(x, data_operator, n)
+
+        self.assertTrue(res_norm.shape == (n,))
+        self.assertTrue(soln_norm.shape == (n,))
+        self.assertTrue(gamma.shape == (n,))
+        # TODO recursion test
+
+
     def test_form_hermitian(self):
         A = np.array([
             [1+1j, 2+2j, 3+3j],

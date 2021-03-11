@@ -66,6 +66,41 @@ def form_data_operator(model, hank_int, field, field_freq):
     
     return data_operator
 
+def L_curve(rx_data, data_operator, n_gamma):
+    """ Do L-Curve -- more info in "Rank-Deficient and Discrete Ill-Posed Problems" or "The L-Curve and its use in the nuermical treatment of inverse problems" (P. C. Hansen)
+    L-Curve is a log-log plot of the solutin norm vs the residual norms for different regularization parameter. Currently uses linear Tikhonov regularization.
+    
+    Args:
+        - rx_data (np.ndarray): vector of measured scattered data (frequency domain)
+        - data_operator (np.ndarray): data operator matrix
+        - n_gamma (int): number of points to consider
+    
+    Outputs:
+        - res_norm (np.ndarray): vector of residual norms (L2)
+        - soln_norm (np.ndarray): vector of corresponding solution norms (L2)
+        - 
+    """
+
+    # do singular value decomp of M matrix (hermitian)
+    (_,s,_) = linalg.svd(form_hermitian(data_operator))
+
+    # define gamma values based on maximum singular value
+    gamma = np.amax(s)*np.logspace(-8,0,n_gamma) 
+
+    # Tikhonov Regularization # TODO add other regularization schemes (divergence [Lo Vetri "Enhanced DBIM"])
+    R = np.identity(data_operator.shape[1])
+
+    # initialize residual norm and solution norm vectors
+    res_norm = np.zeros(n_gamma)
+    soln_norm = np.zeros(n_gamma)
+
+    for i in range(n_gamma):
+        soln = solve_regularized(rx_data, data_operator, gamma[i], R)
+        res_norm[i] = linalg.norm(rx_data - data_operator @ soln, 2)
+        soln_norm[i] = linalg.norm(soln, 2)
+
+    return (res_norm, soln_norm, gamma)
+
 def find_nearest(array,value):
     """ findes closest element in array to value, returns the value it found the index. Array must be sorted
     Args:
