@@ -132,3 +132,13 @@ class TestLCurve(unittest.TestCase):
 
         self.assertTrue(y.shape == (3,))
         # TODO do simple expected result
+    
+    def test_curvature(self):
+        t = np.linspace(0, 10, num=1000)
+        x = np.cos(2*np.pi*t)
+        y = np.sin(2*np.pi*t)
+
+        kappa = calc.curvature(x,y,t,5,5)
+        kappa = np.nan_to_num(kappa, nan=1.0)
+        
+        self.assertTrue(np.all(np.abs(np.ones(x.size) - kappa) < 0.0001))

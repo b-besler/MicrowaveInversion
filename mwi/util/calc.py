@@ -152,6 +152,89 @@ def solve_regularized(b, A, gamma, R):
     
     return linalg.inv(A_reg) @ np.conjugate(A.T) @ b
 
+def curvature(x, y, t, n, order):
+    """ Calculate curvature of a parametric curve [x(t), y(t)]
+        At each point t, a polynomial of order "order" is fit to the n points before and after it
+        Derivaties are then aculated based on the polynomial fit
+
+    Args:
+        - x (np.ndarray): array of x(t) values
+        - y (np.ndarray): array of y(t) values
+        - t (np.ndarray): array of t values
+        - n (int): number of points before and after to fit
+        - order (int): polynomial order
+    
+    Output:
+        - kappa (np.ndarray): curvature at each point t
+    """                
+    # Note: this method is robust but not the fastest. The curvature calculation can be complicated due to the shape of the L-curve (i.e. highly logarithmic)
+    # other options - vector curvature or meneger. Sensitive to number of points/closeness
+    if not(int(n) == n):
+        raise ValueError("n must an integer")
+
+    if not(int(order) == order):
+        raise ValueError("order must be an integer")
+
+    if 2*n < order:
+        raise ValueError("Need more points to fit polynomial of order " + str(order))
+
+    if not(x.size == y.size) or not(x.size == t.size):
+        raise ValueError("x, y, t arrays must be the same size")
+
+    N = t.size
+
+    # initialize derivative arrays
+    dx = np.zeros(x.size)
+    dy = np.zeros(y.size)
+    ddx = np.zeros(x.size)
+    ddy = np.zeros(y.size)
+
+    # iterate through each point
+    for i in range(n, N-n):
+        # select small section of curve
+        x_spline = x[i-n : i+n]
+        y_spline = y[i-n : i+n]
+        t_spline = t[i-n : i+n]
+
+        # fit polynomial x(t), do x'(t), x''(t)
+        px = np.polyfit(t_spline, x_spline, order)
+        dpx = np.polyder(px)
+        ddpx = np.polyder(dpx)
+
+        # fit polynomial y(t), do y'(t), y''(t)
+        py = np.polyfit(t_spline, y_spline, order)
+        dpy = np.polyder(py)
+        ddpy = np.polyder(dpy)
+
+        # evaluate derivaties
+        dx_spline = np.polyval(dpx, t_spline)
+        ddx_spline = np.polyval(ddpx, t_spline)
+        dy_spline = np.polyval(dpy, t_spline)
+        ddy_spline = np.polyval(ddpy, t_spline)
+
+        # select derivatives at mid point of spline
+        dx[i] = dx_spline[n]
+        dy[i] = dy_spline[n]
+        ddx[i] = ddx_spline[n]
+        ddy[i] = ddy_spline[n]
+    
+    # assume derivates are constant at the beginning and end of curve
+    dy[range(n)] = dy[n]
+    dx[range(n)] = dx[n]
+    ddy[range(n)] = ddy[n]
+    ddx[range(n)] = ddx[n]
+
+    dy[range(N-n+1, N)] = dy[N-n-1]
+    dx[range(N-n+1, N)] = dx[N-n-1]
+    ddy[range(N-n+1, N)] = ddy[N-n-1]
+    ddx[range(N-n+1, N)] = ddx[N-n-1]
+
+    # calculate curvature, divide throws an error because some of the values are really small (1e-21)
+    with np.errstate(divide = 'ignore', invalid = 'ignore'):
+        kappa = (dx * ddy - ddx * dy) / (dx**2 + dy**2)**1.5
+
+    return kappa 
+
 def select_data(model, rx_data, freq):
     """Select which rx data to include. Uses domain exclusion angle to decide which rx/tx to kick out data. Uses domain frequency to choose frequency components
 
@@ -177,3 +260,29 @@ def select_data(model, rx_data, freq):
                 idx += f_idx.size
 
     return rx_out
+
+def menger_curvature(x, y, t):
+    """ Calculate the menger curvature (three-point curvature).
+    """
+    N = t.size
+    kappa = np.zeros(N)
+    for i in range(1, N-1):
+        # A,B,C are points in R3
+        A = np.array([x[i-1], y[i-1], t[i-1]])
+        B = np.array([x[i], y[i], t[i]])
+        C = np.array([x[i+1], y[i+1], t[i+1]])
+
+        # get displacement vectors
+        AB = B - A
+        AC = C - A
+        BC = C - B
+
+        # calculate area using cross product
+        area = np.linalg.norm(np.cross(AB, AC))/2
+
+        # calculate menger curvature
+        kappa[i] = 4*area/(np.linalg.norm(AB) * np.linalg.norm(AC) * np.linalg.norm(BC))
+    
+    kappa[0] = kappa[1]
+    kappa[N-1] = kappa[N-2]
+    return kappa
