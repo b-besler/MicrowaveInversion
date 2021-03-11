@@ -91,3 +91,19 @@ class TestLCurve(unittest.TestCase):
         self.assertAlmostEqual(A_h[0,1], np.conjugate(A_h[1,0]))
         self.assertAlmostEqual(A_h[2,1], np.conjugate(A_h[1,2]))
         self.assertAlmostEqual(A_h[0,2], np.conjugate(A_h[2,0]))
+
+    def test_solve_regularized(self):
+        A = np.array([
+            [1+1j, 2+2j, 3+3j],
+            [2+2j, 3+3j, 4+4j]
+        ])
+
+        x = np.array([1+1j, 2+2j])
+
+        R = np.identity(3)
+        gamma = 10
+
+        y = calc.solve_regularized(x, A, gamma, R)
+
+        self.assertTrue(y.shape == (3,))
+        # TODO do simple expected result

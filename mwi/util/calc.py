@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import special
+from scipy import linalg
 import mwi.util.constants as constants
 
 def hankel_integral(model):
@@ -92,3 +93,26 @@ def form_hermitian(A):
     output = np.conjugate(A.T) @ A
     
     return output
+
+def solve_regularized(b, A, gamma, R):
+    """Solve min||b-Ax||_2 + gamma*||xR||_2 - see Wang and Chew 1989
+        Equivalent to solving x = [A'A + gamma R'R]^-1 A' b
+
+    Args:
+        - b (np.ndarray): array with expected values (i.e. measured scattered field)
+        - A (np.ndarray): data matrix
+        - gamma (float): regularization parameter
+        - R (np.ndarray): regularization matrix (identity for normal Tikhonov)
+
+    Output:
+        - x (np.ndarray): solution to about equation
+    """
+
+    A_reg = form_hermitian(A) + gamma * form_hermitian(R)
+
+    condition_num = np.linalg.cond(A_reg)
+
+    if condition_num > 1e14:
+        print("Warning: Regularized matrix is poorly conditioned, results may not be accurate")
+    
+    return linalg.inv(A_reg) @ np.conjugate(A.T) @ b
