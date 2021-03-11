@@ -60,7 +60,7 @@ def form_data_operator(model, hank_int, field, field_freq):
             if (not angle_idx[i,j]):
                 for k in range(model.nf):
                     f = model.freq[k]
-                    image = (constants.E0 * (2*np.pi*f)**2 * constants.MU0 * field[j,f_field_idx[k], : :] * hank_int[j, k, :, :])
+                    image = (constants.E0 * (2*np.pi*f)**2 * constants.MU0 * field[j,f_field_idx[k], : :] * hank_int[i, k, :, :])
                     data_operator[idx, :] = image.flatten()
                     idx += 1
     
