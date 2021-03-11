@@ -77,3 +77,18 @@ def find_nearest(array,value):
     idx = np.searchsorted(array, value, side="left")
     idx = idx - (np.abs(value - array[idx-1]) < np.abs(value - array[idx]))
     return (array[idx],idx)
+
+def form_hermitian(A):
+    """ Forms hermitian matrix by multiplying by complex conjguate tranpose (A_h = A'A)
+    Args:
+        - A (np.ndarray): m x n matrix
+    Output:
+        - n x n hermitian matrix
+    """
+
+    # TODO is there a faster/better way to do this using vector multiplication
+    assert A.ndim == 2, 'A matrix must be m x n to form hermitian'
+    
+    output = np.conjugate(A.T) @ A
+    
+    return output

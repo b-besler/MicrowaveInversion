@@ -74,3 +74,20 @@ class TestFormDataOperator(unittest.TestCase):
     # TODO add recursive test to test funcitonality
     
 
+class TestLCurve(unittest.TestCase):	
+    def test_form_hermitian(self):
+        A = np.array([
+            [1+1j, 2+2j, 3+3j],
+            [2+2j, 3+3j, 4+4j]
+        ])
+
+        A_h = calc.form_hermitian(A)
+
+        # hermitian is square, element xy is conjugate of element yx, diagonal is real
+        self.assertTrue(A_h.shape == (3,3))
+        self.assertTrue(A_h[0,0].imag == 0)
+        self.assertTrue(A_h[1,1].imag == 0)
+        self.assertTrue(A_h[2,2].imag == 0)
+        self.assertAlmostEqual(A_h[0,1], np.conjugate(A_h[1,0]))
+        self.assertAlmostEqual(A_h[2,1], np.conjugate(A_h[1,2]))
+        self.assertAlmostEqual(A_h[0,2], np.conjugate(A_h[2,0]))
