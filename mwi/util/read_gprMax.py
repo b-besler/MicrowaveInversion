@@ -24,21 +24,24 @@ def read_out_data(folder):
     dt = f.attrs['dt']
     iterations = f.attrs['Iterations']
     nrx = f.attrs['nrx']
-    time = np.linspace(0, (iterations - 1) * dt, num=iterations)
+    f.close()
 
-    rx_data = np.zeros((len(out_files), nrx, iterations))
-    rx_data_f = np.zeros((len(out_files), nrx, int(iterations/2)), dtype = np.complex_)
+    time = np.linspace(0, (iterations - 1) * dt, num=iterations)
+    rx_data = np.zeros((nrx, len(out_files),  iterations))
+    rx_data_f = np.zeros((nrx, len(out_files),  int(iterations/2)), dtype = np.complex_)
     
     i = 0
     for file in out_files:
+        for j in range(nrx):
             filepath = os.path.join(folder, file)
             f = h5py.File(filepath, 'r')
             # hdf5 data path
-            path = "/rxs/rx" + str(i+1) + "/"
+            path = "/rxs/rx" + str(j+1) + "/"
             # read in Ez data
-            rx_data[i, :, :] = f[path]["Ez"]
-            rx_data_f[i, :, :] = np.fft.fftshift(np.fft.fft(rx_data[i, :, :]))[:,int(iterations/2):-1]
-            i += 1
+            rx_data[j, i, :] = f[path]["Ez"]
+            # do fft and remove negative frequencies
+            rx_data_f[j, i, :] = np.fft.fftshift(np.fft.fft(rx_data[j, i, :]))[int(iterations/2):-1]
+        i += 1
     
     freq = np.fft.fftshift(np.fft.fftfreq(iterations, dt))[int(iterations/2):-1]
 

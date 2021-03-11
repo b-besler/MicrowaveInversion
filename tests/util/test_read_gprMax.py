@@ -17,8 +17,8 @@ class TestReadData(unittest.TestCase):
     def test_read_out_data(self):
         (data, t, data_f, f) = read_gprMax.read_out_data(self.output_folder)
 
-        self.assertTrue(data.shape == (1,4,213))
-        self.assertTrue(data_f.shape == (1,4,106))
+        self.assertTrue(data.shape == (4,1,213))
+        self.assertTrue(data_f.shape == (4,1,106))
         self.assertTrue(t.shape == (213,))
         self.assertTrue(f.shape == (106,))
         #TODO more tests such a recursion (i.e. are the data matrices the same) or calculate time vector
