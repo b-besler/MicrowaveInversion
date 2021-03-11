@@ -7,7 +7,7 @@ Algorithms for inverse microwave problems.
 .. |Build Status| image:: https://dev.azure.com/brendonbesler/brendon_besler/_apis/build/status/b-besler.MicrowaveInversion?branchName=master
 .. _Build Status: https://dev.azure.com/brendonbesler/brendon_besler/_build/latest?definitionId=1&branchName=master
 
-Developer Install
+Install
 =================
 Clone repository to local machine:
 
@@ -30,3 +30,21 @@ To remove the conda environment:
 
   $ conda deactivate
   $ conda env remove -n mwi
+Running Tests
+=============
+
+.. code-block:: bash
+
+  $ nosetests tests/ #while in MicrowaveInversion directory
+Running Inverse Solve
+=====================
+
+The inverse solver can be called via the command line as follows:
+ 
+.. code-block:: bash
+
+  $ inverse path-to-config/model1_config.json path-to-config/model2_config.json path-to-config/meas_config.json path-to-config/image_config.json path-to-output
+
+See example folder for example configuration files.
+ 
+
