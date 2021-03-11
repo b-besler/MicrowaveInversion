@@ -47,7 +47,7 @@ class TestFindNearest(unittest.TestCase):
         self.assertEqual(idx[0], 0)
         self.assertEqual(idx[1], 6)
 
-class TestFormDataOperator(unittest.TestCase):
+class TestFormData(unittest.TestCase):
     example_file = "example/measurement_config.json"
     model_file = "example/model_config.json"
     domain_file = "example/image_domain.json"
@@ -72,6 +72,12 @@ class TestFormDataOperator(unittest.TestCase):
 
         self.assertTrue(data_operator.shape == (3* 4* 1, 20* 20))
     # TODO add recursive test to test funcitonality
+
+    def test_select_data(self):
+        data = np.zeros((4,4,10))
+        freq = np.linspace(1e8, 1e10, num = 10)
+        data_out = calc.select_data(self.model, data, freq)
+        self.assertTrue(data_out.shape == (3*4*1,))
     
 
 class TestLCurve(unittest.TestCase):

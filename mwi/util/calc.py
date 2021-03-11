@@ -151,3 +151,29 @@ def solve_regularized(b, A, gamma, R):
         print("Warning: Regularized matrix is poorly conditioned, results may not be accurate")
     
     return linalg.inv(A_reg) @ np.conjugate(A.T) @ b
+
+def select_data(model, rx_data, freq):
+    """Select which rx data to include. Uses domain exclusion angle to decide which rx/tx to kick out data. Uses domain frequency to choose frequency components
+
+    Args:
+        - model (class): class with image domain information
+        - rx_data (np.ndarray): matrix with rx data
+        - freq (np.ndarray): array with frequencies
+    Output:
+        - returns rx_data array with proper rx/tx combinations and frequency points
+    """
+
+    angle_idx = model.rx.is_too_close(model.image_domain.ex_angle)
+
+    (_, f_idx) = find_nearest(freq, model.freq)
+
+    rx_out = np.zeros((model.nrx - np.sum(angle_idx, axis=0)[0]) * model.ntx * f_idx.size, dtype = np.complex_)
+
+    idx = 0
+    for i in range(model.nrx):
+        for j in range(model.ntx):
+            if not(angle_idx[i,j]):
+                rx_out[idx:idx+f_idx.size] = rx_data[i,j,f_idx]
+                idx += f_idx.size
+
+    return rx_out
