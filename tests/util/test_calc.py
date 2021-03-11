@@ -47,7 +47,7 @@ class TestFindNearest(unittest.TestCase):
         self.assertEqual(idx[0], 0)
         self.assertEqual(idx[1], 6)
 
-class TestFormDataOperator(unittest.TestCase):
+class TestFormData(unittest.TestCase):
     example_file = "example/measurement_config.json"
     model_file = "example/model_config.json"
     domain_file = "example/image_domain.json"
@@ -72,5 +72,87 @@ class TestFormDataOperator(unittest.TestCase):
 
         self.assertTrue(data_operator.shape == (3* 4* 1, 20* 20))
     # TODO add recursive test to test funcitonality
+
+    def test_select_data(self):
+        data = np.zeros((4,4,10))
+        freq = np.linspace(1e8, 1e10, num = 10)
+        data_out = calc.select_data(self.model, data, freq)
+        self.assertTrue(data_out.shape == (3*4*1,))
     
 
+class TestLCurve(unittest.TestCase):
+
+    def test_L_curve(self):
+        data_operator = np.array([
+            [1+1j, 2+2j, 3+3j],
+            [2+2j, 3+3j, 4+4j]
+        ])
+
+        x = np.array([1+1j, 2+2j])
+
+        n = 10
+
+        (res_norm, soln_norm, gamma) = calc.L_curve(x, data_operator, n)
+
+        self.assertTrue(res_norm.shape == (n,))
+        self.assertTrue(soln_norm.shape == (n,))
+        self.assertTrue(gamma.shape == (n,))
+        # TODO recursion test
+
+
+    def test_form_hermitian(self):
+        A = np.array([
+            [1+1j, 2+2j, 3+3j],
+            [2+2j, 3+3j, 4+4j]
+        ])
+
+        A_h = calc.form_hermitian(A)
+
+        # hermitian is square, element xy is conjugate of element yx, diagonal is real
+        self.assertTrue(A_h.shape == (3,3))
+        self.assertTrue(A_h[0,0].imag == 0)
+        self.assertTrue(A_h[1,1].imag == 0)
+        self.assertTrue(A_h[2,2].imag == 0)
+        self.assertAlmostEqual(A_h[0,1], np.conjugate(A_h[1,0]))
+        self.assertAlmostEqual(A_h[2,1], np.conjugate(A_h[1,2]))
+        self.assertAlmostEqual(A_h[0,2], np.conjugate(A_h[2,0]))
+
+    def test_solve_regularized(self):
+        A = np.array([
+            [1+1j, 2+2j, 3+3j],
+            [2+2j, 3+3j, 4+4j]
+        ])
+
+        x = np.array([1+1j, 2+2j])
+
+        R = np.identity(3)
+        gamma = 10
+
+        y = calc.solve_regularized(x, A, gamma, R)
+
+        self.assertTrue(y.shape == (3,))
+        # TODO do simple expected result
+    
+    def test_curvature(self):
+        t = np.linspace(0, 10, num=1000)
+        x = np.cos(2*np.pi*t)
+        y = np.sin(2*np.pi*t)
+
+        kappa = calc.curvature(x,y,t,5,5)
+        kappa = np.nan_to_num(kappa, nan=1.0)
+        
+        self.assertTrue(np.all(np.abs(np.ones(x.size) - kappa) < 0.0001))
+
+    def test_knee_point(self):
+        # Not representative of L-curve data, but analytic example
+        t = np.linspace(-10, 10, num = 201)
+        x = -t**2
+        y = t
+
+        (t_max_curve, t_idx) = calc.L_curve_knee(x,y,t)
+
+        print(t_max_curve)
+        print(t_idx)
+
+        self.assertAlmostEqual(t_max_curve, 0)
+        self.assertEqual(t_idx, 100)
