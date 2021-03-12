@@ -152,6 +152,30 @@ class Model():
                     image[-i -1 + y0_indx, -j -1 + x0_indx] = value
                     image[i + y0_indx, -j -1 + x0_indx] = value
 
+    def add_image(self, image, prop):
+        """ Writes image (2D np array) into image domain of model
+        Args:
+            - image (np.ndarray): 2D array to be written
+            - prop (str): model property of image (i.e. 'er' or 'sig')
+        """
+
+        if not(image.shape[0] == self.image_domain.y_cell.size) or not(image.shape[1] == self.image_domain.x_cell.size):
+            raise ValueError("Image must be the same size as the image domain")
+        
+        x_indx1 = np.argwhere(self.x_cell - self.image_domain.x_cell[0] >= -0.001)
+        x_indx2 = np.arghwere(self.x_cell - self.image_domain.x_cell[-1] <= 0.001)
+        x_indx = np.logical_and(x_indx1, x_indx2)
+        y_indx1 = np.argwhere(self.y_cell - self.image_domain.y_cell[0] >= -0.001)
+        y_indx2 = np.arghwere(self.y_cell - self.image_domain.y_cell[-1] <= 0.001)
+        y_indx = np.logical_and(y_indx1, y_indx2)
+
+        if prop == 'er':
+            self.er[y_indx, x_indx] = image
+        elif prop == 'sig':
+            self.sig[y_indx, x_indx] = image
+        else:
+            raise ValueError("prop value " + prop + " not supported")
+
     def plot(self, image, title):
         """Plot model using image (er, sig)
         """
@@ -192,6 +216,97 @@ class Model():
         self.rx.translate(dx,dy)
         self.image_domain.translate(dx,dy)
 
+    def get_image(self, prop):
+        """ Get prop ('er' or 'sig') image of model inside imaging domain
+
+        Args:
+            - prop (str): property to get ('er' or 'sig')
+        Outputs:
+            - image (np.ndarray): 2D array of model properties within imaging domian
+        """
+
+        x_indx1 = np.argwhere(self.x_cell - self.image_domain.x_cell[0] >= -0.001)
+        x_indx2 = np.argwhere(self.x_cell - self.image_domain.x_cell[-1] <= 0.001)
+        x_indx = np.intersect1d(x_indx1, x_indx2)
+        y_indx1 = np.argwhere(self.y_cell - self.image_domain.y_cell[0] >= -0.001)
+        y_indx2 = np.argwhere(self.y_cell - self.image_domain.y_cell[-1] <= 0.001)
+        y_indx = np.intersect1d(y_indx1, y_indx2)
+
+        if prop == 'er':
+            image = self.er[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1]
+        elif prop == 'sig':
+            image = self.sig[y_indx, x_indx]
+        else:
+            raise ValueError("prop value " + prop + " not supported")
+        
+        return image
+
+    def compare_to_image(self, image, prop, do_plot):
+        """ Compares model image to another image. Plots cross sections and gives root of sum square errors of cross sections.
+
+        Args:
+            - image (np.ndarray): 2D image 
+            - prop (str): model property to use (e.g. 'er' or 'sig')
+            - do_plot (bool): do plot?
+        Outputs:
+            - x_rsse and y_rsse
+        """
+
+        x_cross1= self.get_cross_section(self.get_image(prop), 0)
+        x_cross2 = self.get_cross_section( image, 0)
+        y_cross1= self.get_cross_section(self.get_image(prop), 1)
+        y_cross2 = self.get_cross_section( image, 1)
+
+        rsse1 = np.sqrt(np.sum(np.abs(x_cross1 - x_cross2)**2))
+        rsse2 = np.sqrt(np.sum(np.abs(y_cross1 - y_cross2)**2))
+
+        if do_plot:
+            plt.plot(self.image_domain.x_cell, x_cross1, label = 'Image 1')
+            plt.plot(self.image_domain.x_cell, x_cross2, label = 'Image 2')
+            plt.xlabel('x position [m]')
+            plt.xticks(self.image_domain.x)
+            plt.ylabel(prop)
+            plt.legend()
+            plt.grid()
+            plt.show()
+
+            plt.plot(self.image_domain.y_cell, y_cross1, label = 'Image 1')
+            plt.plot(self.image_domain.y_cell, y_cross2, label = 'Image 2')
+            plt.xlabel('y position [m]')
+            plt.xticks(self.image_domain.y)
+            plt.ylabel(prop)
+            plt.legend()
+            plt.grid()
+            plt.show()
+
+        return (rsse1, rsse2)
+
+    @staticmethod
+    def get_cross_section(image, axis):
+        """ Get the cross section of two images along given axis
+
+        Args:
+            - image (np.ndarray): 2D array
+            - axis (int): axis to hold steady (i.e. axis = 0, constant y, so plot across x)
+        Outputs:
+            - array (np.ndarray): 1D array of cross section of image 
+        """
+
+        if not(image.ndim == 2):
+            raise ValueError('Image must be 2D')
+            
+        if not(axis < 2) or axis < 0:
+            raise ValueError('Invalid axis for cross section')
+
+        idx = int(image.shape[axis]/2)
+
+        if axis == 0:
+            array = image[idx,:]
+        else:
+            array = image[:,idx]
+
+        return array
+        
 class ImageDomain():
     """Class for informationa and functions to do with the image domain"""
 
