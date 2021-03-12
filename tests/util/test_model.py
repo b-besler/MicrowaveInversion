@@ -150,7 +150,7 @@ class TestModel(unittest.TestCase):
             [1.4,1.4,1.4,1.4]
         ])
 
-        test_model = model.Model(self.config2,self.rx_surf,self.image_domain)
+        test_model = model.Model(self.config,self.rx_surf,self.image_domain)
         er_image = test_model.get_image('er')
 
         self.assertTrue(np.allclose(er_image, image))
