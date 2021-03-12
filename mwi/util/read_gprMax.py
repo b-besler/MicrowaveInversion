@@ -3,6 +3,7 @@ import numpy as np
 import h5py
 import vtk
 from vtk.util.numpy_support import numpy_to_vtk, vtk_to_numpy
+import czt
 
 def read_out_data(folder):
     """Function to read rx data from gprMax (.out files). Currently only reads in Ez data.
@@ -26,10 +27,14 @@ def read_out_data(folder):
     nrx = f.attrs['nrx']
     f.close()
 
+    # 50 MHz steps
+    freq = np.arange(1e8, 10e9 + 5e7, step = 5e7)
+    nf = freq.size
+
     time = np.linspace(0, (iterations - 1) * dt, num=iterations)
     rx_data = np.zeros((nrx, len(out_files),  iterations))
-    rx_data_f = np.zeros((nrx, len(out_files),  int(iterations/2)), dtype = np.complex_)
-    
+    rx_data_f = np.zeros((nrx, len(out_files),  nf), dtype = np.complex_)
+
     i = 0
     for file in out_files:
         for j in range(nrx):
@@ -40,11 +45,13 @@ def read_out_data(folder):
             # read in Ez data
             rx_data[j, i, :] = f[path]["Ez"]
             # do fft and remove negative frequencies
-            rx_data_f[j, i, :] = np.fft.fftshift(np.fft.fft(rx_data[j, i, :]))[int(iterations/2):-1]
+            #rx_data_f[j, i, :] = np.fft.fftshift(np.fft.fft(rx_data[j, i, :]))[int(iterations/2):-1]
+            _,freq_data = czt.time2freq(time, rx_data[j,i,:], freq)
+            rx_data_f[j,i,:] = freq_data
+
         i += 1
     
-    freq = np.fft.fftshift(np.fft.fftfreq(iterations, dt))[int(iterations/2):-1]
-
+    #freq = np.fft.fftshift(np.fft.fftfreq(iterations, dt))[int(iterations/2):-1]
     return (rx_data, time, rx_data_f, freq)
 
 def read_snapshots(folder):
@@ -87,12 +94,16 @@ def read_snapshots(folder):
 
     if nx <= 0 or ny <= 0:
         raise ValueError("Invalid image dimensions. Must be greater than 0")
+    
+    # 50 MHz steps
+    freq = np.arange(1e8, 10e9 + 5e7, step = 5e7)
+    nf = freq.size 
 
     # initialize arrays
     time = np.linspace(0, (num - 1) * dt, num=num)
     data = np.zeros((ntx, num, ny, nx))
-    data_f = np.zeros((ntx, int(num/2), ny, nx), dtype = np.complex_)
-    
+    data_f = np.zeros((ntx, nf, ny, nx), dtype = np.complex_)
+
     # iterate through each folder and each .vti file
     i = 0
     for snap_folder in snap_folders:
@@ -105,7 +116,6 @@ def read_snapshots(folder):
                 image = reader.GetOutput().GetCellData().GetArray("E-field")
                 array = vtk_to_numpy(image)
                 array = array[:,2]
-
                 data[i, j, :, :] = array.reshape((ny, nx))
             i += 1
 
@@ -113,8 +123,10 @@ def read_snapshots(folder):
     for i in range(ntx):
         for j in range(ny):
             for k in range(nx):
-                data_f[i, :, j, k] = np.fft.fftshift(np.fft.fft(data[i, :, j, k]))[int(num/2):-1]
+                #data_f[i, :, j, k] = np.fft.fftshift(np.fft.fft(data[i, :, j, k]))[int(num/2):-1]
+                _,data_f[i, :, j, k] = czt.time2freq(time, data[i,:, j,k], freq)
     
-    freq = np.fft.fftshift(np.fft.fftfreq(num, dt))[int(num/2):-1]
+    
+    #freq = np.fft.fftshift(np.fft.fftfreq(num, dt))[int(num/2):-1]
 
     return (data, time, data_f, freq)
