@@ -1,6 +1,7 @@
 import numpy as np
 import unittest
 import os
+from matplotlib import pyplot as plt
 
 import mwi.util.calc as calc
 import mwi.util.model as model
@@ -156,3 +157,24 @@ class TestLCurve(unittest.TestCase):
 
         self.assertAlmostEqual(t_max_curve, 0)
         self.assertEqual(t_idx, 100)
+
+class TestGenericCalculations(unittest.TestCase):
+
+    def test_percent_rmse(self):
+        x = np.ones(100)
+        y = np.zeros(100)
+
+        (residuals,rmse) = calc.residuals_percent(x,y)
+
+        self.assertTrue(np.allclose(residuals, -x*100))
+        self.assertAlmostEqual(rmse, 100)
+
+        (residuals,rmse) = calc.residuals_percent(x,x)
+        self.assertAlmostEqual(rmse, 0)
+        self.assertTrue(np.allclose(residuals, y))
+
+        (residuals,rmse) = calc.residuals_percent(x/2,x)
+        self.assertAlmostEqual(rmse, 100)
+        self.assertTrue(np.allclose(residuals, x*100))
+
+        self.assertRaises(ValueError, calc.residuals_percent, y, x)

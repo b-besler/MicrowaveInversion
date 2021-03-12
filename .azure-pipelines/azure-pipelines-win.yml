@@ -18,7 +18,7 @@ jobs:
         conda create -y -n mwi python=$(python.version)
         call activate mwi
         conda install -y --file requirements.txt
-        pip install terminaltables tqdm
+        pip install terminaltables tqdm czt==0.0.4
         pip install -e .
     displayName: Setup conda
   - script: |

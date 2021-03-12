@@ -1,23 +1,29 @@
 import unittest
+import numpy as np
+import os
+from matplotlib import pyplot as plt
+
 import mwi.util.model as model
 from mwi.util.read_config import read_model_config
 from mwi.util.read_config import read_domain_config
 from mwi.util.read_config import read_meas_config
 from mwi.util.rx import MeasurementSurface
-import numpy as np
-import os
+
 
 class TestModel(unittest.TestCase):
     example_file = "example/model_config_small.json"
+    example_file2 = "example/model_config.json"
     rx_file = 'example/measurement_config.json'
     domain_file = 'example/image_domain.json'
 
     rx_config = read_meas_config(rx_file)
     config = read_model_config(example_file)
+    config2 = read_model_config(example_file2)
     domain_config = read_domain_config(domain_file)
 
-    rx_surf = MeasurementSurface(rx_config["measurement_surface"])
-    image_domain = model.ImageDomain(domain_config)
+    def setUp(self):
+        self.rx_surf = MeasurementSurface(self.rx_config["measurement_surface"])
+        self.image_domain = model.ImageDomain(self.domain_config)
 
     def test_example_file_exists(self):
         # test that file exists
@@ -105,6 +111,59 @@ class TestModel(unittest.TestCase):
         self.assertAlmostEqual(test_model.image_domain.y1, dy -0.1)
         self.assertAlmostEqual(test_model.image_domain.x2, dx +0.1)
         self.assertAlmostEqual(test_model.image_domain.y2, dy +0.1)
+    
+    def test_get_cross_section(self):
+        image = np.array([
+            [1,2,3,4,5,6],
+            [1,2,3,4,5,6],
+            [2,3,3,4,5,6],
+            [1,2,3,4,5,6],
+            [1,2,3,4,5,6]
+        ])
+
+        x_cross = model.Model.get_cross_section(image, 0)
+
+        self.assertTrue(np.allclose(x_cross, np.array([2,3,3,4,5,6])))
+
+        y_cross = model.Model.get_cross_section(image,1)
+        self.assertTrue(np.allclose(y_cross, np.ones(5) *4))
+        # pass 1D array
+        self.assertRaises(ValueError, model.Model.get_cross_section, np.ones(7), 1)
+        # improper index
+        self.assertRaises(ValueError, model.Model.get_cross_section, image, 2)
+
+    def test_model_compare_cross_section(self):
+        test_model = model.Model(self.config2,self.rx_surf,self.image_domain)
+
+        image = np.ones((20, 20))
+
+        (rsse_x, rsse_y) = test_model.compare_to_image(image, 'er', False)
+
+        self.assertAlmostEqual(rsse_x, np.sqrt(16*0.4**2))
+        self.assertAlmostEqual(rsse_y, np.sqrt(8*0.4**2 + 8*0.2**2))
+
+    def test_get_cross_section(self):
+        image = np.array([
+            [1.4,1.4,1.4,1.4],
+            [1.4,1.4,1.4,1.4],
+            [1.4,1.4,1.4,1.4],
+            [1.4,1.4,1.4,1.4]
+        ])
+
+        test_model = model.Model(self.config,self.rx_surf,self.image_domain)
+        er_image = test_model.get_image('er')
+
+        self.assertTrue(np.allclose(er_image, image))
+
+        
+
+
+
+
+
+
+
+
 
 
 class TestImageDomain(unittest.TestCase):
