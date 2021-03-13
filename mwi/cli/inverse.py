@@ -11,7 +11,19 @@ import mwi.util.read_gprMax as read_gprMax
 import mwi.util.calc as calc
 
 
-def inverse(model_config_file, prior_config_file, meas_config_file, output_folder, image_config_file):
+def inverse(model_config_file, prior_config_file, meas_config_file, output_folder, image_config_file, born_method):
+
+    if not(born_method == 'born') and not(born_method == 'iterative') and not(born_method == 'distorted'):
+        os.sys.exit('ERROR: method {} is not supported'.format(born_method))
+
+    if born_method == 'born':
+        niteration = 1
+        born_method = 'iterative'
+    else:
+        niteration = 10
+    
+    print('Solving Microwave Inverse using Born ' + born_method.capitalize() + " method. With max {} iterations.".format(niteration))
+
     # Read in .json configuration data
     meas_data = read_config.read_meas_config(meas_config_file)
     model_data = read_config.read_model_config(model_config_file)
@@ -157,7 +169,8 @@ def main():
     parser.add_argument('prior_config_file', help='.json file with a priori model configuration')
     parser.add_argument('meas_config_file', help='.json file with measurement setup configuration')
     parser.add_argument('image_config_file', help='.json file with image domain configuration')
-    parser.add_argument('output_folder', help='folder to place outputs, including simulation files')
+    parser.add_argument('output_folder', help='Folder to place outputs, including simulation files')
+    parser.add_argument('-b','--born_method', help='Which Born method to use: born, iterative, distorted', required = False, default='born')
 
     # Parse args and display
     args = parser.parse_args()
