@@ -103,8 +103,8 @@ def make_geometry(model, folder):
         hdf5FileName = os.path.join(folder,model.name,model.name +"_geometry.h5")
         
         # round to three decimal places to avoid too many unique permittivities
-        er = np.round(model.er, 3)
-        sig = np.round(model.sig, 3)
+        er = np.round(model.er, 2)
+        sig = np.round(model.sig, 2)
 
         unique_er = np.unique(er) #find unique values
         E = unique_er.size #number of unique values
