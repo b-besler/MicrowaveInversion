@@ -4,7 +4,7 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
 
 
 def main():
-    description ='''Microwave Inverse
+    description ='''Microwave Inverse Using Method of Moments
 
     Example usage:
     inverse /models/homogeneous_ellipse/bkgd.json /models/homogeneous_ellipse/ellipse.json /models/homogeneous_ellipse/meas.json
@@ -15,9 +15,6 @@ def main():
         - calls gprMax forward solver
         - applies inverse algorithms to generate reconstructed image
     
-    #TODO
-    Inverse solve parameters can be varied to include: 
-        --born_type (born, iter, distort) - Born approximation, Iterative Born Method, and Distorted Iterative Born Method
     '''
     # Setup argument parsing
     parser = argparse.ArgumentParser(
@@ -36,7 +33,7 @@ def main():
     args = parser.parse_args()
 
     # Run program
-    inverse(**vars(args))
+    inverse_MoM(**vars(args))
 
     
 
