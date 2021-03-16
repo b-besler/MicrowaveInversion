@@ -1,6 +1,7 @@
 import numpy as np
 import math
 from matplotlib import pyplot as plt
+import mwi.util.constants as constants
 
 class Model():
     """Class for simulation model: permittivity and conductivity images, measurement surface, and imaging domain
@@ -14,7 +15,7 @@ class Model():
         """Initialize class using configuration data, measurement surface, and imaging domain vector.
 
         Args:
-            - config (dict): model configuration settings (see example\model_config.json)
+            - config (dict): model configuration settings (see model_config.json in example)
             - rx_surface (class): class holding rx information
             - image_domain (class): class holding image domain information
         """
@@ -27,15 +28,15 @@ class Model():
         self.y2 = config["y2"]
         self.name = config["name"]
 
-        # create 2D image using configuration data
-        self.er = self.create_image(config, 'er')
-        self.sig = self.create_image(config, 'sig')
+        # assign image domain
+        self.image_domain = image_domain
 
         # assign measurement surface
         self.rx = rx_surface
 
-        # assign image domain
-        self.image_domain = image_domain
+        # create 2D image using configuration data
+        self.er = self.create_image(config, 'er')
+        self.sig = self.create_image(config, 'sig')
 
     #properties
     @property
@@ -92,7 +93,10 @@ class Model():
             elif obj["type"] == "ellipse":
                 # update image with ellipse
                 self.add_ellipse(obj, image, obj[prop])
-                pass
+            elif obj["type"] == "sinlike":
+                print('Creating sinlike')
+                print(f"Sinlike: {obj[prop]:f}")
+                self.add_sinlike(obj, image, obj[prop])
             else:
                 print("Unsupported object type: " + obj["type"] + ". Not added to image...")
 
@@ -112,7 +116,7 @@ class Model():
         r = obj["r"]
 
         # get index corresponding to middle of object
-        # TODO floating point errors can cause this to erronous in edge cases where x0/y0 is exactly half way between discretizations.
+        # TODO floating point errors can cause this to be erronous in edge cases where x0/y0 is exactly half way between discretizations.
         x0_indx = np.argwhere((np.abs(self.x_cell - x0) < self.dx/2)).astype(np.int64)
         y0_indx = np.argwhere((np.abs(self.y_cell - y0) < self.dy/2)).astype(np.int64)
 
@@ -152,6 +156,34 @@ class Model():
                     image[-i -1 + y0_indx, -j -1 + x0_indx] = value
                     image[i + y0_indx, -j -1 + x0_indx] = value
 
+    def add_sinlike(self, obj, image, value):
+        """Create image of a smooth sine-like distriubtion with specified peak.
+
+        Args:
+            - obj (dict): model configuration for object (contains (x0,y0), r, r, er, sig)
+            - image (np.ndarray): 2D array to be written to (note: overwrites contents when adding ellipse contents)
+            - value (float): value to be written for ellipse
+        """
+        x0 = obj["x0"]
+        y0 = obj["y0"]
+        r = obj["r"]
+
+        x_matrix = np.tile(self.x_cell, (self.y_cell.size, 1))
+        y_matrix = np.tile(self.y_cell, (self.x_cell.size, 1))
+
+        # calculate the distance from center of distribution
+        rho = np.sqrt((x_matrix.T - x0)**2 + (y_matrix - y0)**2)
+
+        # remove distance that are oustide the diameter
+        idx = (rho > r)
+        rho[idx] = r
+        # calculate sinlike
+        print(value)
+        print(value - image[0][0])
+        sinelike = (value - image[0][0]) * np.cos(rho * 0.5 * math.pi / (r))
+
+        image += sinelike
+
     def add_image(self, image, prop):
         """ Writes image (2D np array) into image domain of model
         Args:
@@ -163,16 +195,18 @@ class Model():
             raise ValueError("Image must be the same size as the image domain")
         
         x_indx1 = np.argwhere(self.x_cell - self.image_domain.x_cell[0] >= -0.001)
-        x_indx2 = np.arghwere(self.x_cell - self.image_domain.x_cell[-1] <= 0.001)
-        x_indx = np.logical_and(x_indx1, x_indx2)
+        x_indx2 = np.argwhere(self.x_cell - self.image_domain.x_cell[-1] <= 0.001)
+        x_indx = np.intersect1d(x_indx1, x_indx2)
         y_indx1 = np.argwhere(self.y_cell - self.image_domain.y_cell[0] >= -0.001)
-        y_indx2 = np.arghwere(self.y_cell - self.image_domain.y_cell[-1] <= 0.001)
-        y_indx = np.logical_and(y_indx1, y_indx2)
+        y_indx2 = np.argwhere(self.y_cell - self.image_domain.y_cell[-1] <= 0.001)
+        y_indx = np.intersect1d(y_indx1, y_indx2)
 
         if prop == 'er':
-            self.er[y_indx, x_indx] = image
+            self.er[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] = image
         elif prop == 'sig':
-            self.sig[y_indx, x_indx] = image
+            self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] = image
+        elif prop == 'er_imag':
+            self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] = image*2*self.freq*constants.E0
         else:
             raise ValueError("prop value " + prop + " not supported")
 
