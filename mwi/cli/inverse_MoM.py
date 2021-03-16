@@ -1,6 +1,27 @@
-
+from mwi.util import read_config
+from mwi.util import model
+from mwi.util.rx import MeasurementSurface
 
 def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_folder, image_config_file, born_method):
+
+    meas_data = read_config.read_meas_config(meas_config_file)
+    model_data = read_config.read_model_config(model_config_file)
+    prior_data = read_config.read_model_config(prior_config_file)
+    image_data = read_config.read_domain_config(image_config_file)
+
+    # initialize measurement surface using config data
+    rx = MeasurementSurface(meas_data["measurement_surface"])
+    #initialize imaging domain/ reconstruction parameters
+    image_domain = model.ImageDomain(image_data)
+    
+    # initialize models (for "measured scattered fields")
+    obj_model = model.Model(model_data, rx, image_domain)
+    obj_model.plot_er()
+    obj_model.plot_sig()
+    bkgrd_model = model.Model(prior_data, rx, image_domain)
+
+    
+
 
 
 def main():
