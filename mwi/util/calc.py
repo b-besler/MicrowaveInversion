@@ -121,7 +121,7 @@ def L_curve_knee(res, soln, gamma):
 
     idx = np.argmax(kappa)
 
-    return (gamma[idx], idx)
+    return (kappa, gamma[idx], idx)
 
 def find_nearest(array,value):
     """ findes closest element in array to value, returns the value it found the index. Array must be sorted
