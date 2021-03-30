@@ -253,6 +253,32 @@ class Model():
             self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] = image*2*self.freq*constants.E0
         else:
             raise ValueError("prop value " + prop + " not supported")
+    
+    def add_image(self, image, prop):
+        """ Writes image (2D np array) into image domain of model
+        Args:
+            - image (np.ndarray): 2D array to be written
+            - prop (str): model property of image (i.e. 'er' or 'sig')
+        """
+
+        if not(image.shape[0] == self.image_domain.y_cell.size) or not(image.shape[1] == self.image_domain.x_cell.size):
+            raise ValueError("Image must be the same size as the image domain")
+        
+        x_indx1 = np.argwhere(self.x_cell - self.image_domain.x_cell[0] >= -0.001)
+        x_indx2 = np.argwhere(self.x_cell - self.image_domain.x_cell[-1] <= 0.001)
+        x_indx = np.intersect1d(x_indx1, x_indx2)
+        y_indx1 = np.argwhere(self.y_cell - self.image_domain.y_cell[0] >= -0.001)
+        y_indx2 = np.argwhere(self.y_cell - self.image_domain.y_cell[-1] <= 0.001)
+        y_indx = np.intersect1d(y_indx1, y_indx2)
+
+        if prop == 'er':
+            self.er[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] += image
+        elif prop == 'sig':
+            self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] += image
+        elif prop == 'er_imag':
+            self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] += image*2*self.freq*constants.E0
+        else:
+            raise ValueError("prop value " + prop + " not supported")
 
     def plot(self, image, title):
         """Plot model using image (er, sig)
