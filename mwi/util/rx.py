@@ -138,8 +138,8 @@ class MeasurementSurface():
         rec = self.calc_rx()
         tx = self.calc_tx()
         
-        plt.plot(rec[0],rec[1],'r.',label = 'Rx')
-        plt.plot(tx[0],tx[1],'b.', label = 'Tx')
+        plt.plot(rec[0],rec[1],'w.',label = 'Rx')
+        plt.plot(tx[0],tx[1],'y.', label = 'Tx')
         plt.legend()
 
 
@@ -148,6 +148,6 @@ class MeasurementSurface():
         rec = self.calc_rx_discrete(dx,dy)
         tx = self.calc_tx_discrete(dx,dy)
         
-        plt.plot(rec[0],rec[1],'r.',label = 'Rx')
-        plt.plot(tx[0],tx[1],'b.', label = 'Tx')
+        plt.plot(rec[0],rec[1],'w.',label = 'Rx')
+        plt.plot(tx[0],tx[1],'y.', label = 'Tx')
         plt.legend()
