@@ -72,6 +72,14 @@ class Model():
     @property
     def nf(self):
         return self.image_domain.freq.size
+    @property
+    def a(self):
+        """Radius of circle with area equal to area of discretization rectangle"""
+        return np.sqrt(self.dx * self.dy / np.pi)
+    @property
+    def k(self):
+        """Wavenumber in background medium at reconstruction frequencys"""
+        return 2*np.pi*self.freq * np.sqrt(self.er_b) / constants.C0
 
     def create_image(self, config, prop):
         """Create 2D numpy image of property using objects in configuration
