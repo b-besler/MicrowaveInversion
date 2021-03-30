@@ -41,6 +41,7 @@ class Model():
         # keep track of some useful information
         self.er_b = config["objects"][0]["er"]
 
+
     #properties
     @property
     def x_size(self):
@@ -86,6 +87,7 @@ class Model():
     def k(self):
         """Wavenumber in background medium at reconstruction frequencys"""
         return 2*np.pi*self.freq * np.sqrt(self.er_b) / constants.C0
+    
 
     def create_image(self, config, prop):
         """Create 2D numpy image of property using objects in configuration
@@ -139,6 +141,7 @@ class Model():
 
         # TODO: make faster by doing octants (instead of quarters)
         # Calculates circle in first quarter (quadrant I) then mirrors to other quadrants
+
         for i in range(math.ceil((r)/(self.dy))):
             for j in range(math.ceil((r)/(self.dx))):
                 if (((self.x_cell[j + x0_indx] - x0)/r)**2 + ((self.y_cell[i + y0_indx] - y0)/r)**2 - 1) <= 0:
@@ -146,6 +149,7 @@ class Model():
                     image[-i -1 + y0_indx, j + x0_indx] = value
                     image[-i -1 + y0_indx, -j -1 + x0_indx] = value
                     image[i + y0_indx, -j -1 + x0_indx] = value
+
 
     def add_ellipse(self, obj, image, value):
         """Create image of a ellipse with specified value.
@@ -195,9 +199,9 @@ class Model():
         idx = (rho > r)
         rho[idx] = r
         # calculate sinlike
-        print(value)
-        print(value - image[0][0])
         sinelike = (value - image[0][0]) * np.cos(rho * 0.5 * math.pi / (r))
+        #idx = (sinelike > 0.01)
+        #sinelike[idx] = (value - image[0][0])
 
         image += sinelike
     
@@ -228,6 +232,7 @@ class Model():
 
         image += square
 
+
     def write_image(self, image, prop):
         """ Writes image (2D np array) into image domain of model
         Args:
@@ -253,7 +258,7 @@ class Model():
             self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] = image*2*self.freq*constants.E0
         else:
             raise ValueError("prop value " + prop + " not supported")
-    
+
     def add_image(self, image, prop):
         """ Writes image (2D np array) into image domain of model
         Args:
@@ -340,8 +345,8 @@ class Model():
             image = self.er[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1]
         elif prop == 'sig':
             image = self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1]
-        elif prop == 'comp_er':
-            image = self.er[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] + 1j * self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] / (2*self.freq * constants.E0)
+        elif prop == "comp_er":
+            image = self.er[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] + 1j* self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1]
         else:
             raise ValueError("prop value " + prop + " not supported")
         
@@ -363,8 +368,9 @@ class Model():
         y_cross1= self.get_cross_section(self.get_image(prop), 1)
         y_cross2 = self.get_cross_section( image, 1)
 
-        rsse1 = np.sqrt(np.sum(np.abs(x_cross1 - x_cross2)**2))
-        rsse2 = np.sqrt(np.sum(np.abs(y_cross1 - y_cross2)**2))
+        rsse1 = np.sqrt(np.sum(np.abs(x_cross1 - x_cross2)**2)/y_cross2.size)
+        rsse2 = np.sqrt(np.sum(np.abs(y_cross1 - y_cross2)**2)/x_cross2.size)
+        rsse_total = np.sqrt(np.sum(np.abs(self.get_image(prop) - image)**2)/image.size)
 
         if do_plot:
             plt.plot(self.image_domain.x_cell, x_cross1, label = 'Image 1')
@@ -385,7 +391,7 @@ class Model():
             plt.grid()
             plt.show()
 
-        return (rsse1, rsse2)
+        return (rsse1, rsse2, rsse_total)
 
     @staticmethod
     def get_cross_section(image, axis):
