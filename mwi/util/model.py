@@ -111,9 +111,9 @@ class Model():
                 # update image with ellipse
                 self.add_ellipse(obj, image, obj[prop])
             elif obj["type"] == "sinlike":
-                print('Creating sinlike')
-                print(f"Sinlike: {obj[prop]:f}")
                 self.add_sinlike(obj, image, obj[prop])
+            elif obj["type"] == "square":
+                self.add_square(obj, image, obj[prop])
             else:
                 print("Unsupported object type: " + obj["type"] + ". Not added to image...")
 
@@ -200,6 +200,33 @@ class Model():
         sinelike = (value - image[0][0]) * np.cos(rho * 0.5 * math.pi / (r))
 
         image += sinelike
+    
+    def add_square(self, obj, image, value):
+        """Function to add inhomogeneous square object to model. Object property varies linearly in x and y.
+
+        Args:
+            - obj (dict): model configuration for object (contains (x0,y0), r, r, er, sig)
+            - image (np.ndarray): 2D array to be written to (note: overwrites contents when adding ellipse contents)
+            - value (float): value to be written for ellipse
+            
+        """
+        x0 = obj["x0"]
+        y0 = obj["y0"]
+        r = obj["r"] # half of square side length i.e. similar to radius
+
+        # calculates the number of steps and corresponding er amount
+        num_steps = int( np.ceil(r / self.dx))
+        er_step = (value - image[0][0])/num_steps
+
+        square = np.zeros((self.y_cell.size, self.x_cell.size))
+
+        # creates squares of different sizes starting with the largest then overwriting the smaller ones
+        for i in range(num_steps):
+            indx = np.intersect1d(np.argwhere(self.x_cell > (x0 + i * self.dx - r)), np.argwhere(self.x_cell < (x0 - i * self.dx + r)))
+            indy = np.intersect1d(np.argwhere(self.y_cell> (y0 + i * self.dy - r)), np.argwhere(self.y_cell < (y0 - i * self.dy + r)))
+            square[indy[0]:indy[-1]+1, indx[0]:indx[-1]+1] = er_step*(i+1)
+
+        image += square
 
     def add_image(self, image, prop):
         """ Writes image (2D np array) into image domain of model
