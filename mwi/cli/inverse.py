@@ -259,8 +259,8 @@ def inverse(model_config_file, prior_config_file, meas_config_file, output_folde
             break
         
         # update model
-        iter_model.add_image(er, 'er')
-        iter_model.add_image(er_imag, 'er_imag')
+        iter_model.write_image(er, 'er')
+        iter_model.write_image(er_imag, 'er_imag')
         
         plt.imshow(iter_model.get_image('er') - obj_model.get_image('er'))
         plt.show()

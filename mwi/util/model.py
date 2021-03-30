@@ -228,7 +228,7 @@ class Model():
 
         image += square
 
-    def add_image(self, image, prop):
+    def write_image(self, image, prop):
         """ Writes image (2D np array) into image domain of model
         Args:
             - image (np.ndarray): 2D array to be written
