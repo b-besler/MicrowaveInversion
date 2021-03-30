@@ -73,6 +73,12 @@ class Model():
     def nf(self):
         return self.image_domain.freq.size
     @property
+    def rx_pos(self):
+        return self.rx.calc_rx_discrete(self.image_domain.dx, self.image_domain.dy)
+    @property
+    def tx_pos(self):
+        return self.rx.calc_tx_discrete(self.image_domain.dx, self.image_domain.dy)
+    @property
     def a(self):
         """Radius of circle with area equal to area of discretization rectangle"""
         return np.sqrt(self.dx * self.dy / np.pi)
