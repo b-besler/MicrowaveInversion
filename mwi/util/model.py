@@ -38,6 +38,9 @@ class Model():
         self.er = self.create_image(config, 'er')
         self.sig = self.create_image(config, 'sig')
 
+        # keep track of some useful information
+        self.er_b = config["objects"][0]["er"]
+
     #properties
     @property
     def x_size(self):
