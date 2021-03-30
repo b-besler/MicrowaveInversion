@@ -139,8 +139,8 @@ class Model():
 
         # TODO: make faster by doing octants (instead of quarters)
         # Calculates circle in first quarter (quadrant I) then mirrors to other quadrants
-        for i in range(math.ceil((y0 + r)/(self.dy))):
-            for j in range(math.ceil((x0 + r)/(self.dx))):
+        for i in range(math.ceil((r)/(self.dy))):
+            for j in range(math.ceil((r)/(self.dx))):
                 if (((self.x_cell[j + x0_indx] - x0)/r)**2 + ((self.y_cell[i + y0_indx] - y0)/r)**2 - 1) <= 0:
                     image[i + y0_indx, j + x0_indx] = value
                     image[-i -1 + y0_indx, j + x0_indx] = value
@@ -165,8 +165,8 @@ class Model():
         y0_indx = np.argwhere((np.abs(self.y_cell - y0) < self.dy/2)).astype(np.int64)
 
         # does quadrant I then mirrors to other quadrants
-        for i in range(math.ceil((y0 + r2)/(self.dy))):
-            for j in range(math.ceil((x0 + r1)/(self.dx))):
+        for i in range(math.ceil((r2)/(self.dy))):
+            for j in range(math.ceil((r1)/(self.dx))):
                 if (((self.x_cell[j + x0_indx] - x0)/r1)**2 + ((self.y_cell[i + y0_indx] - y0)/r2)**2 - 1) <= 0:
                     image[i + y0_indx, j + x0_indx] = value
                     image[-i -1 + y0_indx, j + x0_indx] = value
