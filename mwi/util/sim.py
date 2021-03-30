@@ -27,7 +27,7 @@ def make(model, src, folder):
         - src (class): class holding source information
         - folder (string): output folder to make simulation files in
     """
-    
+
     folderPath = os.path.join(folder,model.name)
     # create new folder with model name
     if not os.path.exists(folderPath):
@@ -104,13 +104,13 @@ def make_geometry(model, folder):
         
         # round to three decimal places to avoid too many unique permittivities
         er = np.round(model.er, 2)
-        sig = np.round(model.sig, 2)
+        sig = np.round(model.sig, 3)
 
         unique_er = np.unique(er) #find unique values
         E = unique_er.size #number of unique values
         unique_sig = np.unique(sig)
         S = unique_sig.size
-
+        
         data = np.zeros((er.shape[0],er.shape[1])) #initialize arrays
         mat = np.zeros((E*S,er.shape[0],er.shape[1]))
 
