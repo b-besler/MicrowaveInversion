@@ -340,7 +340,7 @@ class Model():
             image = self.er[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1]
         elif prop == 'sig':
             image = self.sig[y_indx, x_indx]
-        elif propr == 'er_comp':
+        elif propr == 'comp_er':
             image = self.er[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] + 1j * self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] / (2*self.freq * constants.E0)
         else:
             raise ValueError("prop value " + prop + " not supported")
