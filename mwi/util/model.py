@@ -87,6 +87,9 @@ class Model():
     def k(self):
         """Wavenumber in background medium at reconstruction frequencys"""
         return 2*np.pi*self.freq * np.sqrt(self.er_b) / constants.C0
+    @property
+    def image_area(self):
+        return self.image_domain.area
     
 
     def create_image(self, config, prop):
@@ -456,6 +459,9 @@ class ImageDomain():
     @property
     def y_cell(self):
         return np.linspace(self.y1 + self.dy/2, self.y2 - self.dy/2, num = int(round(self.y_size/self.dy, 1)))
+    @property
+    def area(self):
+        return self.y_size*self.x_size
 
     def translate(self, dx, dy):
         """ Translate model and objects by dx, dy
