@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import special
+from scipy import sparse as sparse
 from scipy import linalg
 import mwi.util.constants as constants
 
@@ -95,11 +96,14 @@ def L_curve(rx_data, data_operator, n_gamma):
     soln_norm = np.zeros(n_gamma)
 
     for i in range(n_gamma):
-        soln = solve_regularized(rx_data, data_operator, gamma[i], R)
+        #soln = solve_regularized(rx_data, data_operator, gamma[i], R)
+        soln = solve_regularized_cgm(rx_data, data_operator, gamma[i], R)
         res_norm[i] = linalg.norm(rx_data - data_operator @ soln, 2)
         soln_norm[i] = linalg.norm(soln, 2)
 
     return (res_norm, soln_norm, gamma)
+
+
 
 def L_curve_knee(res, soln, gamma):
     """ Find the knee point (maximum curvature) of L-curve
@@ -166,13 +170,24 @@ def solve_regularized(b, A, gamma, R):
     """
 
     A_reg = form_hermitian(A) + gamma * form_hermitian(R)
-
+    
     condition_num = np.linalg.cond(A_reg)
 
     if condition_num > 1e14:
         print("Warning: Regularized matrix is poorly conditioned, results may not be accurate")
     
     return linalg.inv(A_reg) @ np.conjugate(A.T) @ b
+
+def solve_regularized_cgm(b, A, gamma,R):
+    """ Instead of doing matrix inversion, you conjugate gradient method to solve
+    """
+    A_reg = form_hermitian(A) + gamma * form_hermitian(R)
+    b_A_conj = np.conjugate(A.T) @ b
+    x, error = sparse.linalg.cg(A_reg,b_A_conj,tol = 1e-10)
+    if error:
+        print('Conjugate Gradient Method failed to converge on regularized solution...')
+    return x
+
 
 def curvature(x, y, t, n, order):
     """ Calculate curvature of a parametric curve [x(t), y(t)]
