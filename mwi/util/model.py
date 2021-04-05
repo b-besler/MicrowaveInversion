@@ -90,6 +90,12 @@ class Model():
     @property
     def image_area(self):
         return self.image_domain.area
+    @property
+    def image_nx(self):
+        return self.image_domain.x_cell.size
+    @property
+    def image_ny(self):
+        return self.image_domain.y_cell.size
     
 
     def create_image(self, config, prop):
