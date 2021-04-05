@@ -40,6 +40,7 @@ def inverse(model_config_file, prior_config_file, meas_config_file, output_folde
     # initialize models (for "measured scattered fields")
     obj_model = model.Model(model_data, rx, image_domain)
     bkgrd_model = model.Model(prior_data, rx, image_domain)
+    obj_model.plot_er()
     
     # initialize source, make and run simulation
     src = sim.Source(meas_data["signal"])
@@ -123,7 +124,7 @@ def inverse(model_config_file, prior_config_file, meas_config_file, output_folde
         plt.show()
 
         plt.semilogx(gamma, kappa)
-        plt.semilogx(opt_gamma, kappa[gamma_idx])
+        plt.semilogx(opt_gamma, kappa[gamma_idx],'r.')
         plt.show()
 
         np.save("rx_data.npy",s_data_f)
