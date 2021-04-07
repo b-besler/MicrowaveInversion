@@ -325,7 +325,7 @@ def menger_curvature(x, y, t):
     return kappa
 
 def residuals_percent(actual, calculated):
-    """ Calculate residuals in percent (normalized to expected data) and the root mean square error in percent.
+    """ Calculate residuals in percent (normalized to expected data) and the relative error.
 
     Args:
         - actual (np.ndarray): expected values
@@ -337,8 +337,8 @@ def residuals_percent(actual, calculated):
     if np.any(actual == 0.0):
         raise ValueError("Actual data cannot equal 0 for any element")
 
-    residuals = (calculated - actual)/actual * 100
+    residuals = (calculated - actual)
 
-    rmse = np.sqrt(np.sum(np.absolute(residuals**2))/residuals.size)
+    rmse = np.sum(np.abs(residuals))/np.sum(np.abs(actual))
 
     return (residuals,rmse)
