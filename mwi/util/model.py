@@ -260,11 +260,17 @@ class Model():
         y_indx = np.intersect1d(y_indx1, y_indx2)
 
         if prop == 'er':
+            indx = (image < 1)
+            image[indx] = 1.0
             self.er[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] = image
         elif prop == 'sig':
+            indx = (image < 0)
+            image[indx] = 0.0
             self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] = image
         elif prop == 'er_imag':
-            self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] = image*2*self.freq*constants.E0
+            indx = (image > 0)
+            image[indx] = 0
+            self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] = self.er_imag_to_sig(image)
         else:
             raise ValueError("prop value " + prop + " not supported")
 
@@ -290,7 +296,7 @@ class Model():
         elif prop == 'sig':
             self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] += image
         elif prop == 'er_imag':
-            self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] += image*2*self.freq*constants.E0
+            self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] += self.er_imag_to_sig(image)
         else:
             raise ValueError("prop value " + prop + " not supported")
 
@@ -354,12 +360,29 @@ class Model():
             image = self.er[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1]
         elif prop == 'sig':
             image = self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1]
+        elif prop == 'er_imag':
+            # returns real valued number equal to imaginary component
+            image = np.abs(self.sig_to_er_imag(self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1]))
         elif prop == "comp_er":
-            image = self.er[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] + 1j* self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1]
+            image = self.er[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] + self.sig_to_er_imag(self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1])
+        elif prop == "contrast":
+            image = (self.er[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] + self.sig_to_er_imag(self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1]) - self.er_b)/self.er_b
         else:
             raise ValueError("prop value " + prop + " not supported")
         
         return image
+
+    def er_imag_to_sig(self, image):
+        """Convert imaginary component of permittivity to conductivity.
+        Args:
+            - self (class): model class with frequency info
+            - image (nd.ndarray): imaginary part of permittivity 
+        """
+        return -image * 2 * np.pi* self.freq * constants.E0
+    
+    def sig_to_er_imag(self, image):
+        """Convert conductivity to imaginary component of permittivity. Returns imaginary number with correct sign (for positive sigma)"""
+        return -1j*image / (2*np.pi * self.freq * constants.E0)
 
     def compare_to_image(self, image, prop, do_plot):
         """ Compares model image to another image. Plots cross sections and gives root of sum square errors of cross sections.
@@ -377,9 +400,14 @@ class Model():
         y_cross1= self.get_cross_section(self.get_image(prop), 1)
         y_cross2 = self.get_cross_section( image, 1)
 
-        rsse1 = np.sqrt(np.sum(np.abs(x_cross1 - x_cross2)**2)/y_cross2.size)
-        rsse2 = np.sqrt(np.sum(np.abs(y_cross1 - y_cross2)**2)/x_cross2.size)
-        rsse_total = np.sqrt(np.sum(np.abs(self.get_image(prop) - image)**2)/image.size)
+        actual_image = self.get_image(prop)
+        indx = np.argwhere(actual_image > self.er_b)
+        profile = actual_image[indx[:,0],indx[:,1]]
+
+        rsse1 = np.sqrt(np.sum(np.abs(x_cross1 - x_cross2)**2)/np.sum(x_cross1)**2)
+        rsse2 = np.sqrt(np.sum(np.abs(y_cross1 - y_cross2)**2)/np.sum(y_cross1)**2)
+        rsse_profile = np.sqrt(np.sum(np.abs(profile- image[indx[:,0],indx[:,1]])**2)/np.sum(profile**2))
+        rsse_total = np.sqrt(np.sum(np.abs(actual_image- image)**2)/np.sum(actual_image**2))
 
         if do_plot:
             plt.plot(self.image_domain.x_cell, x_cross1, label = 'Image 1')
@@ -400,7 +428,7 @@ class Model():
             plt.grid()
             plt.show()
 
-        return (rsse1, rsse2, rsse_total)
+        return (rsse1, rsse2, rsse_profile, rsse_total)
 
     @staticmethod
     def get_cross_section(image, axis):
