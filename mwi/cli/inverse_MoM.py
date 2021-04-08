@@ -14,8 +14,8 @@ import mwi.util.constants as constants
 
 def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_folder, image_config_file, born_method):
     rmse_old = 1e20
-    threshold = 0.00001
-    niteration = 6
+    threshold = 0.001
+    niteration = 100
     
     if born_method == "born":
         niteration = 1
@@ -48,15 +48,22 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
     obj_model.plot_sig()
     plt.imshow(obj_model.get_image('er'))
     plt.colorbar()
-    plt.title("Sine-Like Distribution")
+    plt.title("Sine-Like Distribution - Permittivity")
     plt.show()
-
+    plt.imshow(obj_model.get_image('sig'))
+    plt.colorbar()
+    plt.title("Sine-Like Distribution - Conductivity''")
+    plt.show()
+    
     # do forward solve
     (inc_field, total_field,rx_scatter) = mom.sim_homogeneous_background(backgnd_model, obj_model, current)
 
     rx_scatter = np.ravel(rx_scatter)
+
+    #rx_scatter_lossless = np.load('misc/lossless.npy')#, rx_scatter)
+
     # plt.plot(np.abs(rx_scatter), label = 'noiseless')
-    #rx_scatter = mom.add_noise(rx_scatter, 0.05)
+    rx_scatter = mom.add_noise(rx_scatter, 0.05)
     # plt.plot(np.abs(rx_scatter), label = '5% noise')
     # plt.title("Measured Scattered Field")
     # plt.legend()
@@ -73,7 +80,7 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
 
     (res_norm, soln_norm, gamma) = calc.L_curve(rx_scatter, data_op, 100)
     (kappa, opt_gamma, gamma_idx) = calc.L_curve_knee(np.log10(res_norm), np.log10(soln_norm), gamma)
-
+    #pt_gamma = opt_gamma*100
     # plot L-curve
     plt.loglog(res_norm, soln_norm)
     plt.loglog(res_norm[gamma_idx], soln_norm[gamma_idx],'r.')
@@ -89,32 +96,44 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
     plt.show()
 
     contrast = calc.solve_regularized(rx_scatter.flatten(), data_op, opt_gamma, np.identity((data_op.shape[1])))
+
     print(f"Background permittivity: {iter_model.er_b}")
     contrast = contrast*iter_model.er_b + iter_model.er_b
     er = np.reshape(contrast.real, (iter_model.image_domain.y_cell.size, iter_model.image_domain.x_cell.size))
-    er_imag = np.reshape(contrast.imag, (iter_model.image_domain.y_cell.size, iter_model.image_domain.x_cell.size))
+    er_imag = np.reshape(-contrast.imag, (iter_model.image_domain.y_cell.size, iter_model.image_domain.x_cell.size))
 
-    plt.imshow(er)
-    plt.show()
+    # plt.imshow(er)
+    # plt.show()
 
-    plt.plot(np.abs(rx_scatter))
-    plt.plot(np.abs(data_op @ contrast))
-    plt.show()
+    # plt.imshow(er_imag)
+    # plt.title("Imaginary permittivity")
+    # plt.show()
+
+    # plt.plot(np.abs(rx_scatter))
+    # plt.plot(np.abs(data_op @ contrast))
+    # plt.show()
 
     (rsse_x, rsse_y, rsse_profile, rsse_total) = obj_model.compare_to_image(er.real, 'er', True)
+    (rsse_x_imag, rsse_y_imag, rsse_profile_imag, rsse_total_imag) = obj_model.compare_to_image(er_imag, 'er_imag', True)
     print(f"Root of sum square error in x: {rsse_x:0.2f}")
     print(f"Root of sum square error in y: {rsse_y:0.2f}")
     print(f"Root of sum square error over image: {rsse_total:0.2f}")
 
     with open(f'{os.path.join(output_folder,obj_model.name + "_" + born_method) }.csv','w') as file:
-        file.write("Iteration, RRE, MSE Profile,  MSE Image \n")
+        file.write("Iteration, RRE, MSE Profile - Real,  MSE Image - Real, MSE Profile - Imag, MSE Image - Imag\n")
 
     print("Updating model...")
     iter_model.write_image(er,'er')
-    #iter_model.write_image(er_imag,'er_imag')
+    iter_model.write_image(er_imag,'er_imag')
 
     final_model.write_image(er,'er')
-    #final_model.write_image(er_imag,'er_imag')
+    final_model.write_image(er_imag,'er_imag')
+
+    plt.imshow(iter_model.get_image('er_imag'))
+    plt.title("er''")
+    plt.colorbar()
+    plt.show()
+
 
     iteration = 1
     while True:
@@ -131,7 +150,7 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
         (_, rmse) = calc.residuals_percent(rx_scatter.flatten(), rx_scatter_sim.flatten())
 
         with open(f'{os.path.join(output_folder,obj_model.name + "_" + born_method) }.csv','a') as file:
-            file.write(f"{iteration}, {rmse:0.4f}, {rsse_profile:0.4f}, {rsse_total:0.4f} \n")
+            file.write(f"{iteration}, {rmse:0.4f}, {rsse_profile:0.4f}, {rsse_total:0.4f},{rsse_profile_imag:0.4f}, {rsse_total_imag:0.4f} \n")
 
         print(f"Root mean square error residuals: {rmse:0.4f}")
         
@@ -166,6 +185,7 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
             greens = mom.greens_from_fields(iter_model, fields, current)
             data_op = mom.form_greens_operator(iter_model, greens, fields)
             meas_data = rx_scatter.flatten() - rx_scatter_sim.flatten()
+
 
         (res_norm, soln_norm, gamma) = calc.L_curve(meas_data, data_op, 100)
         (kappa, opt_gamma, gamma_idx) = calc.L_curve_knee(np.log10(res_norm), np.log10(soln_norm), gamma)
@@ -209,17 +229,18 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
         if born_method == "iterative":
             contrast = contrast * iter_model.er_b + iter_model.er_b
             er = np.reshape(contrast.real, (iter_model.image_domain.y_cell.size, iter_model.image_domain.x_cell.size))
-            er_imag = np.reshape(contrast.imag, (iter_model.image_domain.y_cell.size, iter_model.image_domain.x_cell.size))
+            er_imag = -np.reshape(contrast.imag, (iter_model.image_domain.y_cell.size, iter_model.image_domain.x_cell.size))
         else:
             contrast = iter_model.get_image('contrast') + np.reshape(contrast, (iter_model.image_domain.y_cell.size, iter_model.image_domain.x_cell.size))
             contrast = contrast * iter_model.er_b + iter_model.er_b
-            er_imag = contrast.imag
+            er_imag = -contrast.imag
             er = contrast.real
             #er = iter_model.get_image('er') + np.reshape(contrast.real, (iter_model.image_domain.y_cell.size, iter_model.image_domain.x_cell.size))
             #er_imag = iter_model.get_image('er_imag') + np.reshape(contrast.imag, (iter_model.image_domain.y_cell.size, iter_model.image_domain.x_cell.size))
 
         # compare er image to model
         (rsse_x, rsse_y, rsse_profile, rsse_total) = obj_model.compare_to_image(er.real, 'er', False)
+        (rsse_x_imag, rsse_y_imag, rsse_profile_imag, rsse_total_imag) = obj_model.compare_to_image(er_imag, 'er_imag', False)
         print(f"Root of sum square error in x: {rsse_x:0.2f}")
         print(f"Root of sum square error in y: {rsse_y:0.2f}")
         print(f"Root of sum square error over image: {rsse_total:0.2f}")
@@ -247,11 +268,16 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
         print("Updating model...")
         # keep track of previous model (have to do another simluation to see if residuals increase)
         final_model.write_image(iter_model.get_image('er'),'er')
-        #final_model.write_image(iter_model.get_image('er_imag'), 'er_imag')
+        final_model.write_image(iter_model.get_image('er_imag'), 'er_imag')
 
         # update current iteration model
         iter_model.write_image(er,'er')
-        #iter_model.write_image(er_imag,'er_imag')
+        iter_model.write_image(er_imag,'er_imag')
+
+        # plt.imshow(iter_model.get_image('er_imag'))
+        # plt.title("er''")
+        # plt.colorbar()
+        # plt.show()
 
         # keep track of previous rre
         rmse_old = rmse
@@ -263,18 +289,13 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
     plt.colorbar()
     plt.show()
 
-    plt.imshow(final_model.get_image('er') - obj_model.get_image('er'))
-    plt.title("Error in final reconstructed permittivity")
-    plt.colorbar()
-    plt.show()
-    final_model.plot_sig()
-
     plt.imshow(final_model.get_image('sig'))
     plt.title("Final reconstructed conductivity")
     plt.colorbar()
     plt.show()
 
     obj_model.compare_to_image(final_model.get_image('er'), 'er', True)
+    obj_model.compare_to_image(final_model.get_image('sig'), 'sig', True)
 
     (_, fields,_) = mom.sim_homogeneous_background(backgnd_model, final_model, current)
     fields = np.expand_dims(fields, axis =1)
