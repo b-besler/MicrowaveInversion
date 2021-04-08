@@ -69,27 +69,29 @@ def homogeneous_greens(model):
 
     return greens
 
-def homogeneous_solution(rx, tx, er, f, I):
+def homogeneous_solution(model, I):
     """Calculate homogeneous solution due from tx to rx. Note monostatic solution is not accurate.
     
 
     -Args:
-        - rx (np.ndarray): 2 x nrx array of rx coordinates
-        - tx (np.ndarray): 2 x ntx array of tx coordinates
-        - er (complex): complex permittivity of background (single frequency)
-        - f (float): frequency
+        - model (class) with:
+            - rx (np.ndarray): 2 x nrx array of rx coordinates
+            - tx (np.ndarray): 2 x ntx array of tx coordinates
+            - er (complex): complex permittivity of background (single frequency)
+            - f (float): frequency
         - I (complex): complex components of source current
     """
-
+    rx = model.rx_pos
+    tx = model.tx_pos
+    f = model.freq
     rho = np.sqrt(np.add.outer(tx[0], -rx[0])**2 + np.add.outer(tx[1], - rx[1])**2)
+
     # deal with discontinuity at rx=tx (note not accurate)
     indx = np.argwhere(rho == 0.0)
-    rho[indx] = rho[indx[0]+1]
+    rho[indx[:,0],indx[:,1]] = np.partition(rho, 1)[1,1]
 
-    k = 2*np.pi*f/constants.C0 * np.sqrt(er)
-
-    field = 1j*2*np.pi*f*constants.MU0*-1j/4*I*special.hankel2(0, rho*k)
-
+    field = 1j*2*np.pi*f*constants.MU0*-1j/4*I*special.hankel2(0, rho*model.k)
+    
     return field
 
 def calc_total_fields(inc_fields, model):
@@ -235,12 +237,13 @@ def form_greens_operator(model, greens, field):
     data_operator = np.zeros((model.ntx* (model.nrx - np.sum(angle_idx, axis=0)[0]), ny * nx), dtype=complex)
 
     idx = 0
+    k_squared = model.k**2 * model.get_image('comp_er') / model.er_b # model.k is in background medium
     for i in range(model.nrx):
         for j in range(model.ntx):
             # skip rx/tx that are too close
             if (not angle_idx[i,j]):
                     # Combine wavenumber of background (k2 = w2 eps mu), total field and greens function
-                    image = model.k**2 * field[j, : :] * greens[i,:,:]
+                    image = k_squared * field[j, : :] * greens[i,:,:]
                     # Flatten 2D array into 1D array for each nrx/ntx
                     data_operator[idx, :] = image.flatten()
                     idx += 1
