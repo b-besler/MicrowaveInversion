@@ -243,7 +243,8 @@ class Model():
 
 
     def write_image(self, image, prop):
-        """ Writes image (2D np array) into image domain of model
+        """ Writes image (2D np array) into image domain of model.
+            Note for er_imag, it is assumed to be a real, positive number
         Args:
             - image (np.ndarray): 2D array to be written
             - prop (str): model property of image (i.e. 'er' or 'sig')
@@ -268,14 +269,16 @@ class Model():
             image[indx] = 0.0
             self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] = image
         elif prop == 'er_imag':
-            indx = (image > 0)
+            # assumes er'' is positive real number
+            indx = (image < 0)
             image[indx] = 0
             self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] = self.er_imag_to_sig(image)
         else:
             raise ValueError("prop value " + prop + " not supported")
 
     def add_image(self, image, prop):
-        """ Writes image (2D np array) into image domain of model
+        """ Adds image (2D np array) into image domain of model
+        Note images can be non-physical (i.e. negative er)
         Args:
             - image (np.ndarray): 2D array to be written
             - prop (str): model property of image (i.e. 'er' or 'sig')
@@ -361,12 +364,13 @@ class Model():
         elif prop == 'sig':
             image = self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1]
         elif prop == 'er_imag':
-            # returns real valued number equal to imaginary component
-            image = np.abs(self.sig_to_er_imag(self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1]))
+            # returns real value image
+            image = self.sig_to_er_imag(self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1])
         elif prop == "comp_er":
-            image = self.er[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] + self.sig_to_er_imag(self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1])
+            # returns complex value
+            image = self.er[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] - 1j * self.sig_to_er_imag(self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1])
         elif prop == "contrast":
-            image = (self.er[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] + self.sig_to_er_imag(self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1]) - self.er_b)/self.er_b
+            image = (self.er[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] -1j * self.sig_to_er_imag(self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1]) - self.er_b)/self.er_b
         else:
             raise ValueError("prop value " + prop + " not supported")
         
@@ -378,11 +382,11 @@ class Model():
             - self (class): model class with frequency info
             - image (nd.ndarray): imaginary part of permittivity 
         """
-        return -image * 2 * np.pi* self.freq * constants.E0
+        return image * 2 * np.pi* self.freq * constants.E0
     
     def sig_to_er_imag(self, image):
         """Convert conductivity to imaginary component of permittivity. Returns imaginary number with correct sign (for positive sigma)"""
-        return -1j*image / (2*np.pi * self.freq * constants.E0)
+        return image / (2*np.pi * self.freq * constants.E0)
 
     def compare_to_image(self, image, prop, do_plot):
         """ Compares model image to another image. Plots cross sections and gives root of sum square errors of cross sections.
