@@ -14,8 +14,8 @@ import mwi.util.constants as constants
 
 def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_folder, image_config_file, born_method):
     rmse_old = 1e20
-    threshold = 0.01
-    niteration = 100
+    threshold = 0.00001
+    niteration = 6
     
     if born_method == "born":
         niteration = 1
@@ -56,7 +56,7 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
 
     rx_scatter = np.ravel(rx_scatter)
     # plt.plot(np.abs(rx_scatter), label = 'noiseless')
-    # rx_scatter = mom.add_noise(rx_scatter, 0.05)
+    #rx_scatter = mom.add_noise(rx_scatter, 0.05)
     # plt.plot(np.abs(rx_scatter), label = '5% noise')
     # plt.title("Measured Scattered Field")
     # plt.legend()
@@ -91,7 +91,7 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
     contrast = calc.solve_regularized(rx_scatter.flatten(), data_op, opt_gamma, np.identity((data_op.shape[1])))
     print(f"Background permittivity: {iter_model.er_b}")
     contrast = contrast*iter_model.er_b + iter_model.er_b
-    er = np.reshape(contrast.real, (iter_model.image_domain.y_cell.size, iter_model.image_domain.x_cell.size)) * iter_model.er_b
+    er = np.reshape(contrast.real, (iter_model.image_domain.y_cell.size, iter_model.image_domain.x_cell.size))
     er_imag = np.reshape(contrast.imag, (iter_model.image_domain.y_cell.size, iter_model.image_domain.x_cell.size))
 
     plt.imshow(er)
@@ -185,7 +185,17 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
         # plt.show()
 
         contrast = calc.solve_regularized(meas_data, data_op, opt_gamma, np.identity((data_op.shape[1])))
-        
+        contrast = np.reshape(contrast, (iter_model.image_domain.y_cell.size, iter_model.image_domain.x_cell.size))
+
+        # plt.imshow(contrast.real)
+        # plt.title("Real Part of Contrast")
+        # plt.colorbar()
+        # plt.show()
+
+        # plt.imshow(contrast.imag)
+        # plt.title("Imaginary Part of Contrast")
+        # plt.colorbar()
+        # plt.show()
         test = np.reshape(contrast, (iter_model.image_domain.y_cell.size, iter_model.image_domain.x_cell.size))
 
         # calculated scattered fields
@@ -202,9 +212,9 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
             er_imag = np.reshape(contrast.imag, (iter_model.image_domain.y_cell.size, iter_model.image_domain.x_cell.size))
         else:
             contrast = iter_model.get_image('contrast') + np.reshape(contrast, (iter_model.image_domain.y_cell.size, iter_model.image_domain.x_cell.size))
-            er = contrast * iter_model.er_b + iter_model.er_b
-            er_imag = er.imag
-            er = er.real
+            contrast = contrast * iter_model.er_b + iter_model.er_b
+            er_imag = contrast.imag
+            er = contrast.real
             #er = iter_model.get_image('er') + np.reshape(contrast.real, (iter_model.image_domain.y_cell.size, iter_model.image_domain.x_cell.size))
             #er_imag = iter_model.get_image('er_imag') + np.reshape(contrast.imag, (iter_model.image_domain.y_cell.size, iter_model.image_domain.x_cell.size))
 
@@ -258,6 +268,11 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
     plt.colorbar()
     plt.show()
     final_model.plot_sig()
+
+    plt.imshow(final_model.get_image('sig'))
+    plt.title("Final reconstructed conductivity")
+    plt.colorbar()
+    plt.show()
 
     obj_model.compare_to_image(final_model.get_image('er'), 'er', True)
 
