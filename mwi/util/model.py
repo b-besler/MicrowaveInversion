@@ -408,7 +408,8 @@ class Model():
 
         actual_image = self.get_image(prop)
         indx = np.argwhere(actual_image > self.er_b)
-        
+        if indx.size == 0:
+            indx = np.argwhere(actual_image < self.er_b)
         profile = actual_image[indx[:,0],indx[:,1]]
 
         rsse1 = np.sqrt(np.sum(np.abs(x_cross1 - x_cross2)**2)/np.sum(x_cross1)**2)
