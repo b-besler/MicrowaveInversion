@@ -11,7 +11,7 @@ class Model():
         -placing object at mid point between discretizations can cause errors due to float precision.
     """
 
-    def __init__(self, config, rx_surface, image_domain):
+    def __init__(self, config, rx_surface, image_domain, alt_grid):
         """Initialize class using configuration data, measurement surface, and imaging domain vector.
 
         Args:
@@ -30,6 +30,8 @@ class Model():
 
         # assign image domain
         self.image_domain = image_domain
+        # assign alternative grid (use to avoid inverse crime)
+        self.alt_grid = alt_grid
 
         # assign measurement surface
         self.rx = rx_surface
@@ -406,6 +408,7 @@ class Model():
 
         actual_image = self.get_image(prop)
         indx = np.argwhere(actual_image > self.er_b)
+        
         profile = actual_image[indx[:,0],indx[:,1]]
 
         rsse1 = np.sqrt(np.sum(np.abs(x_cross1 - x_cross2)**2)/np.sum(x_cross1)**2)
@@ -463,17 +466,18 @@ class Model():
 class ImageDomain():
     """Class for informationa and functions to do with the image domain"""
 
-    def __init__(self, domain_config):
+    def __init__(self, domain_config, scale):
         """Initialize ImageDomain using configuration data
         Args:
             - domain_config (dict): configuration data
+            - scale (float): linear scale factor (use to create alternative grid)
         """
-        self.dx = domain_config["dx"]
-        self.dy = domain_config["dy"]
-        self.x1 = domain_config["x1"]
-        self.x2 = domain_config["x2"]
-        self.y1 = domain_config["y1"]
-        self.y2 = domain_config["y2"]
+        self.dx = domain_config["dx"] * (1 + scale)
+        self.dy = domain_config["dy"] * (1 + scale)
+        self.x1 = domain_config["x1"] * (1 + scale/2)
+        self.x2 = domain_config["x2"] * (1 + scale/2)
+        self.y1 = domain_config["y1"] * (1 + scale/2)
+        self.y2 = domain_config["y2"] * (1 + scale/2)
         self.freq = np.asarray(domain_config["recon_freq"])
         self.ex_angle = domain_config["exclu_angle"] * np.pi / 180
 
@@ -511,5 +515,6 @@ class ImageDomain():
         self.x2 += dx
         self.y1 += dy
         self.y2 += dy
+
 
 
