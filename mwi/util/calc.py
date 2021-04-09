@@ -96,8 +96,8 @@ def L_curve(rx_data, data_operator, n_gamma):
     soln_norm = np.zeros(n_gamma)
 
     for i in range(n_gamma):
-        #soln = solve_regularized(rx_data, data_operator, gamma[i], R)
-        soln = solve_regularized_cgm(rx_data, data_operator, gamma[i], R)
+        soln = solve_regularized(rx_data, data_operator, gamma[i], R)
+        #soln = solve_regularized_cgm(rx_data, data_operator, gamma[i], R)
         res_norm[i] = linalg.norm(rx_data - data_operator @ soln, 2)
         soln_norm[i] = linalg.norm(soln, 2)
 
@@ -261,10 +261,10 @@ def curvature(x, y, t, n, order):
     ddy[range(n)] = ddy[n]
     ddx[range(n)] = ddx[n]
 
-    dy[range(N-n+1, N)] = dy[N-n-1]
-    dx[range(N-n+1, N)] = dx[N-n-1]
-    ddy[range(N-n+1, N)] = ddy[N-n-1]
-    ddx[range(N-n+1, N)] = ddx[N-n-1]
+    dy[range(N-n, N)] = dy[N-n-1]
+    dx[range(N-n, N)] = dx[N-n-1]
+    ddy[range(N-n, N)] = ddy[N-n-1]
+    ddx[range(N-n, N)] = ddx[N-n-1]
 
     # calculate curvature, divide throws an error because some of the values are really small (1e-21)
     with np.errstate(divide = 'ignore', invalid = 'ignore'):
