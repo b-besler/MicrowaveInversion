@@ -34,7 +34,7 @@ def calc_homogeneous_fields(model, I):
         - nrx x ny x nx array with fields of x,y due to point sources
     """
 
-    return (1j *  2 * np.pi * model.freq * constants.MU0 * I) * homogeneous_greens(model)
+    return (-1j *  2 * np.pi * model.freq * constants.MU0 * I) * homogeneous_greens(model)
 
 def homogeneous_greens(model):
     """Calculate homogeneous green's function due to transmitter at rx at all points x and y. 
@@ -65,7 +65,7 @@ def homogeneous_greens(model):
         rho[indx] = rho[indx[0]+1]
 
     # Calculate fields in background medium
-    greens = -1/(1j*4)*special.hankel2(0, rho*model.k)
+    greens = 1/(1j*4)*special.hankel2(0, rho*model.k)
 
     return greens
 
@@ -90,7 +90,7 @@ def homogeneous_solution(model, I):
     indx = np.argwhere(rho == 0.0)
     rho[indx[:,0],indx[:,1]] = np.partition(rho, 1)[1,1]
 
-    field = 1j*2*np.pi*f*constants.MU0*-1j/4*I*special.hankel2(0, rho*model.k)
+    field = -1j*2*np.pi*f*constants.MU0*1/(1j*4)*I*special.hankel2(0, rho*model.k)
     
     return field
 
@@ -256,7 +256,7 @@ def greens_from_fields(model, fields, I):
     
     """
 
-    return -fields/ (1j*I*2*np.pi*model.freq*constants.MU0) * model.dx * model.dy
+    return fields/ (-1j*I*2*np.pi*model.freq*constants.MU0) * model.dx * model.dy
 
 def calc_hankel_integral(model):
     """Calculate the response over each pixel in image to each receiver."""
