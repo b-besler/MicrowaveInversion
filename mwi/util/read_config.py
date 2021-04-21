@@ -213,4 +213,7 @@ def read_domain_config(filepath):
 
     return data
 
+def write_model_config(model_config, file):
 
+    with open(file+'.json','w') as json_file:
+        json.dump(model_config, json_file, indent=4)
