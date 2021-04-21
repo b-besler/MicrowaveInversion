@@ -1,5 +1,31 @@
 import json
 import os
+import sys
+
+def read_config_folder(path):
+    """Reads in .json files for configuration. Expects 4 files: 'background.json', 'object.json', 'measurement.json', 'config.json'
+    """
+
+    if not os.path.exists(path):
+        sys.exit(f'Specified configurtion folder {path} does not exist. Terminating...')
+    
+    for file in os.listdir(path):
+        full_path = os.path.join(path, file)
+        if file.endswith('.json'):
+            if file == 'background.json':
+                background_config = read_model_config(full_path)
+            elif file == 'object.json':
+                object_config = read_model_config(full_path)
+            elif file == 'measurement.json':
+                measurement_config = read_meas_config(full_path)
+            elif file == 'config.json':
+                domain_config = read_domain_config(full_path)
+            else:
+                print(f"Unknown configuration file {file}. Skipping...")
+    
+    return object_config, background_config, measurement_config, domain_config
+
+
 
 def read_model_config(filepath):
     """Read model configuration .json file. 
@@ -186,6 +212,5 @@ def read_domain_config(filepath):
         raise ValueError('Second (x,y) coordinate must be greater than first')
 
     return data
-
 
 
