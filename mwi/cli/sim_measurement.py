@@ -10,55 +10,62 @@ from mwi.util.rx import MeasurementSurface
 import mwi.util.mom as mom
 import mwi.util.calc as calc
 import mwi.util.constants as constants
+import mwi.util.dispersive_models as er_model
 
-def sim_measurement(object_config_file, background_config_file, meas_config_file, image_config_file, output_folder, verbose):
-    print("Creating simulated data")
-    
-    # load in .json configuration files into dicts
-    meas_config = read_config.read_meas_config(meas_config_file)
-    object_config = read_config.read_model_config(object_config_file)
-    background_config = read_config.read_model_config(background_config_file)
-    image_config = read_config.read_domain_config(image_config_file)
+def sim_measurement(config_folder, material_file, output_folder, verbose, number):
+    for i in range(int(number)):
+        print("Creating simulated data")
+        # read in configuration files from folder
+        object_config, background_config, meas_config, image_config = read_config.read_config_folder(config_folder)
 
-    current = image_config["current"]["real"] + 1j * image_config["current"]["imag"]
-    noise = image_config["noise_level"]
+        # read in materials and update object definition as needed
+        materials = er_model.read_materials(material_file)
+        er_model.assign_properties(object_config['objects'], materials, image_config['recon_freq'])
+        read_config.write_model_config(object_config, os.path.join(config_folder, 'object_updated'))
+        # save updated model
 
-    # initialize measurement surface using config data
-    rx = MeasurementSurface(meas_config["measurement_surface"])
 
-    #initialize imaging domain/ reconstruction parameters and alternative grid
-    image_domain = model.ImageDomain(image_config, 0)
-    alt_grid = model.ImageDomain(image_config, 0.02)
-    
-    # initialize models (for "measured scattered fields")
-    obj_model = model.Model(object_config, rx, image_domain, alt_grid)
-    backgnd_model = model.Model(background_config, rx, image_domain, alt_grid)
+        # get signal amplitude (current)
+        current = image_config["current"]["real"] + 1j * image_config["current"]["imag"]
+        # get signal noise level
+        noise = image_config["noise_level"]
 
-    if verbose:
-        obj_model.plot_er()
-        obj_model.plot_sig()
-        backgnd_model.plot_er()
-        backgnd_model.plot_er()
+        # initialize measurement surface using config data
+        rx = MeasurementSurface(meas_config["measurement_surface"])
 
-    if not os.path.exists(output_folder):
-        os.mkdir(output_folder)
+        #initialize imaging domain/ reconstruction parameters and alternative grid
+        image_domain = model.ImageDomain(image_config, 0)
+        alt_grid = model.ImageDomain(image_config, 0.02)
+        
+        # initialize models (for "measured scattered fields")
+        obj_model = model.Model(object_config, rx, image_domain, alt_grid)
+        backgnd_model = model.Model(background_config, rx, image_domain, alt_grid)
 
-    np.save(os.path.join(output_folder, obj_model.name + '_actual_er1.npy'), obj_model.get_image('er'))
-    np.save(os.path.join(output_folder, obj_model.name + '_actual_sig1.npy'), obj_model.get_image('sig'))
-    
-    # do forward solve
-    (inc_field, total_field, rx_scatter) = mom.sim_homogeneous_background(backgnd_model, obj_model, current)
-    
-    # do some formatting of fields
-    rx_scatter = np.ravel(rx_scatter)
-    rx_scatter = mom.add_noise(rx_scatter, noise)
+        if verbose:
+            obj_model.plot_er()
+            obj_model.plot_sig()
+            backgnd_model.plot_er()
+            backgnd_model.plot_er()
 
-    json_data = {}
-    json_data['real'] = rx_scatter.real.tolist()
-    json_data['imag'] = rx_scatter.imag.tolist()
+        if not os.path.exists(output_folder):
+            os.mkdir(output_folder)
 
-    with open(os.path.join(output_folder, obj_model.name + '_scattered.json'), 'w') as file:
-        json.dump(json_data, file, indent=4)
+        np.save(os.path.join(output_folder, obj_model.name + '_actual_er.npy'), obj_model.get_image('er'))
+        np.save(os.path.join(output_folder, obj_model.name + '_actual_sig.npy'), obj_model.get_image('sig'))
+        
+        # do forward solve
+        (inc_field, total_field, rx_scatter) = mom.sim_homogeneous_background(backgnd_model, obj_model, current)
+        
+        # do some formatting of fields
+        rx_scatter = np.ravel(rx_scatter)
+        rx_scatter = mom.add_noise(rx_scatter, noise)
+
+        json_data = {}
+        json_data['real'] = rx_scatter.real.tolist()
+        json_data['imag'] = rx_scatter.imag.tolist()
+
+        with open(os.path.join(output_folder, obj_model.name + '_scattered' + '_' + str(i) +'.json'), 'w') as file:
+            json.dump(json_data, file, indent=4)
 
 def main():
     description ='''Create simulated microwave scattering data on measurement surface due to object model.
@@ -77,12 +84,11 @@ def main():
         prog="sim_measurement",
         description=description
     )
-    parser.add_argument('object_config_file', help='.json file with model configuration')
-    parser.add_argument('background_config_file', help='.json file with a background configuration')
-    parser.add_argument('meas_config_file', help='.json file with measurement setup configuration')
-    parser.add_argument('image_config_file', help='.json file with image domain configuration')
+    parser.add_argument('config_folder', help='Folder with configuration files (.json)')
+    parser.add_argument('material_file', help ='Folder with material files (.json)')
     parser.add_argument('output_folder', help='Folder to place outputs')
     parser.add_argument('-v','--verbose', help="Verbose output?", required = False, action='store_true')
+    parser.add_argument('-n', '--number', help="Number of measurements to generate", required = False, default = 1)
 
     # Parse args and display
     args = parser.parse_args()
