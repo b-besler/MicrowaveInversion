@@ -4,6 +4,7 @@ import os
 from matplotlib import pyplot as plt
 import sys
 import time
+from scipy import linalg
 
 from mwi.util import read_config
 from mwi.util import model
@@ -14,7 +15,7 @@ import mwi.util.constants as constants
 
 def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_folder, image_config_file, born_method):
     rmse_old = 1e20
-    threshold = 0.01
+    threshold = 0.001
     niteration = 100
     
     if born_method == "born":
@@ -49,24 +50,56 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
     obj_model.plot_sig()
     plt.imshow(obj_model.get_image('er'))
     plt.colorbar()
-    plt.title("Sine-Like Distribution - Permittivity")
+    plt.title("Permittivity")
     plt.show()
     plt.imshow(obj_model.get_image('sig'))
     plt.colorbar()
-    plt.title("Sine-Like Distribution - Conductivity''")
+    plt.title("Conductivity")
     plt.show()
+    plt.imshow(np.real(obj_model.get_image('contrast')))
+    plt.title("Real part of contrast")
+    plt.show()
+    plt.imshow(np.imag(obj_model.get_image('contrast')))
+    plt.title("Imaginary part of contrast")
+    plt.show()
+
+    np.save(os.path.join(output_folder, obj_model.name + '_actual_er.npy'), obj_model.get_image('er'))
+    np.save(os.path.join(output_folder, obj_model.name + '_actual_sig.npy'), obj_model.get_image('sig'))
     
     # do forward solve
     start = time.time()
     (inc_field, total_field,rx_scatter) = mom.sim_homogeneous_background(backgnd_model, obj_model, current)
     print(f"Time to do forward solve: {time.time() - start: 0.2f}")
+
     rx_scatter = np.ravel(rx_scatter)
+
+    plt.plot(np.abs(rx_scatter))
+    plt.title("Measured Scattered Field")
+    plt.show()
+
+    #rx_scatter2 = np.load('arm_model.npy')#np.save(obj_model.name + '.npy', rx_scatter)
+
+    #rx_scatter = rx_scatter2 - rx_scatter1
+
+    # plt.plot(np.abs(rx_scatter2), label = 'Object 2')
+    # plt.plot(np.abs(rx_scatter1), label = 'Object 1')
+    # plt.plot(np.abs(rx_scatter), label = 'Difference')
+    # plt.legend()
+    # plt.show()
+
+    # plt.plot(np.angle(rx_scatter2), label = 'Object 2')
+    # plt.plot(np.angle(rx_scatter1), label = 'Object 1')
+    # plt.plot(np.angle(rx_scatter), label = 'Difference')
+    # plt.legend()
+    # plt.show()
+
+
     #rx_scatter2 = np.load("misc/arm1.npy")
     #rx_scatter -= rx_scatter2
     #rx_scatter_lossless = np.load('misc/lossless.npy')#, rx_scatter)
 
     # plt.plot(np.abs(rx_scatter), label = 'noiseless')
-    #rx_scatter = mom.add_noise(rx_scatter, 0.05)
+    rx_scatter = mom.add_noise(rx_scatter, 0.05)
     # plt.plot(np.abs(rx_scatter), label = '5% noise')
     # plt.title("Measured Scattered Field")
     # plt.legend()
@@ -83,9 +116,9 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
     start = time.time()
     (res_norm, soln_norm, gamma) = calc.L_curve(rx_scatter, data_op, 100)
     (kappa, opt_gamma, gamma_idx) = calc.L_curve_knee(np.log10(res_norm), np.log10(soln_norm), gamma)
+    opt_gamma = opt_gamma *1000
     print(f"Time to do L-Curve: {time.time()-start:0.2f}")
-    #opt_gamma = opt_gamma/100
-    #pt_gamma = opt_gamma*100
+
     # plot L-curve
     plt.loglog(res_norm, soln_norm)
     plt.loglog(res_norm[gamma_idx], soln_norm[gamma_idx],'r.')
@@ -99,6 +132,9 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
     plt.semilogx(opt_gamma, kappa[gamma_idx],'r.')
     plt.title("Curvature of L-Curve")
     plt.show()
+
+    (_,s,_) = linalg.svd(calc.form_hermitian(data_op))
+    #opt_gamma = np.max(s)*0.1
 
     contrast = calc.solve_regularized(rx_scatter.flatten(), data_op, opt_gamma, np.identity((data_op.shape[1])))
 
@@ -130,10 +166,10 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
 
     print("Updating model...")
     iter_model.write_image(er,'er')
-    #iter_model.write_image(er_imag,'er_imag')
+    iter_model.write_image(er_imag,'er_imag')
 
     final_model.write_image(er,'er')
-    #final_model.write_image(er_imag,'er_imag')
+    final_model.write_image(er_imag,'er_imag')
 
     plt.imshow(iter_model.get_image('er_imag'))
     plt.title("er''")
@@ -152,8 +188,6 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
         fields = np.expand_dims(fields, axis =1)
 
         rx_scatter_sim = mom.calc_rx_scatter(iter_model,fields)
-        print(f"Simulated scattered field: {np.mean(np.abs(rx_scatter_sim)):0.2f}")
-        print(f"'Measured' scattered field: {np.mean(np.abs(rx_scatter_sim)):0.2f}")
 
         (_, rmse) = calc.residuals_percent(rx_scatter.flatten(), rx_scatter_sim.flatten())
 
@@ -199,6 +233,7 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
         (kappa, opt_gamma, gamma_idx) = calc.L_curve_knee(np.log10(res_norm), np.log10(soln_norm), gamma)
         #opt_gamma = opt_gamma *100
         #opt_gamma = 10**opt_gamma*1.10
+        opt_gamma = opt_gamma * (1 + pow(10, 3 - 0.5*iteration))
         #plot L-curve
         # plt.loglog(res_norm, soln_norm)
         # plt.loglog(res_norm[gamma_idx], soln_norm[gamma_idx],'r.')
@@ -273,15 +308,20 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
 
         iteration += 1
 
+        # indx = (er > 80)
+        # er[indx] = 80
+        # indx = (er_imag > 80)
+        # er[indx] = 80
+
         #contrast = np.reshape(contrast, (iter_model.image_domain.y_cell.size, iter_model.image_domain.x_cell.size))
         print("Updating model...")
         # keep track of previous model (have to do another simluation to see if residuals increase)
         final_model.write_image(iter_model.get_image('er'),'er')
-        #final_model.write_image(iter_model.get_image('er_imag'), 'er_imag')
+        final_model.write_image(iter_model.get_image('er_imag'), 'er_imag')
 
         # update current iteration model
         iter_model.write_image(er,'er')
-        #iter_model.write_image(er_imag,'er_imag')
+        iter_model.write_image(er_imag,'er_imag')
 
         # plt.imshow(iter_model.get_image('er_imag'))
         # plt.title("er''")
@@ -323,6 +363,9 @@ def inverse_MoM(model_config_file, prior_config_file, meas_config_file, output_f
     plt.ylabel("Magnitude [ ]")
     plt.legend()
     plt.show()
+
+    np.save(os.path.join(output_folder, obj_model.name + '_' + born_method + '_er.npy'), final_model.get_image('er'))
+    np.save(os.path.join(output_folder, obj_model.name + '_' + born_method + '_sig.npy'), final_model.get_image('sig'))
 
     
 
