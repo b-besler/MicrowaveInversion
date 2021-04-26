@@ -96,8 +96,7 @@ def fit_water(folder, file_name):
     data['er_s'] = {'m':er_s_opt[0],'r2':er_s_squared}
     data['er_f'] = {'m':er_f_opt[0],'r2':er_f_squared}
     data['sig_s'] = {'m':sig_s_opt[0],'r2':sig_s_squared}
-    data['']
-
+    
     with open(os.path.join(folder, file_name) + '_slope.json','w') as json_file:
         json.dump(data, json_file, indent=4)
 
@@ -107,7 +106,7 @@ def fit_debye(output_folder, file_name, fmin, fmax, tau,reference):
     fmax = float(fmax)
     tau = float(tau)
     database_path = "C:\\Users\\brendon.besler\\MicrowaveInversion\\debye\\dielectric_properties_itis_v3p0.xls"
-    tissue_list = ["Muscle", "Skin", "Fat", "Bone(Cortical)", "Bone(Cancellous)", "Blood"]
+    tissue_list = ["Muscle", "Skin", "Fat", "Bone(Cortical)",  "Blood","Bone(Cancellous)"]
     #f = np.logspace(np.log10(fmin), np.log10(fmax), num=1001)
     f = np.linspace(fmin, fmax, num=1001)
     # load spreadsheet
