@@ -3,6 +3,7 @@ import numpy as np
 import os
 import sys
 import json
+from matplotlib import pyplot as plt
 
 from mwi.util import read_config
 from mwi.util import model
@@ -21,9 +22,14 @@ def sim_measurement(config_folder, material_file, output_folder, verbose, number
         # read in materials and update object definition as needed
         materials = er_model.read_materials(material_file)
         er_model.assign_properties(object_config['objects'], materials, image_config['recon_freq'])
-        read_config.write_model_config(object_config, os.path.join(config_folder, 'object_updated'))
+        
         # save updated model
-
+        read_config.write_model_config(object_config, os.path.join(config_folder, 'object_updated'))
+        er_image, sig_image = er_model.assign_model('duke_forearm2.npy', material_file, image_config['recon_freq'])
+        
+        # plt.imshow(er_image)
+        # plt.title("30x Subsampling - 20 x 20")
+        # plt.show()
 
         # get signal amplitude (current)
         current = image_config["current"]["real"] + 1j * image_config["current"]["imag"]
@@ -40,6 +46,19 @@ def sim_measurement(config_folder, material_file, output_folder, verbose, number
         # initialize models (for "measured scattered fields")
         obj_model = model.Model(object_config, rx, image_domain, alt_grid)
         backgnd_model = model.Model(background_config, rx, image_domain, alt_grid)
+        er_image_model=obj_model.get_image('er')
+        print(obj_model.image_domain.x_cell.size)
+        print(er_image.shape)
+        print(er_image_model.shape)
+        # obj_model.plot_er()
+        obj_model.write_image(er_image, 'er')
+        obj_model.write_image(sig_image, 'sig')
+        obj_model.replace_background(1,0,20,0)
+
+        # obj_model.plot_er()
+
+        # obj_model.plot_er()
+        # obj_model.plot_sig()
 
         if verbose:
             obj_model.plot_er()
