@@ -304,6 +304,13 @@ class Model():
             self.sig[y_indx[0]:y_indx[-1]+1, x_indx[0]:x_indx[-1]+1] += self.er_imag_to_sig(image)
         else:
             raise ValueError("prop value " + prop + " not supported")
+    
+    def replace_background(self, old_er, old_sig, new_er, new_sig):
+        """
+        """
+        self.er[self.er == old_er] = new_er
+        self.sig[self.sig == old_sig] = new_sig
+
 
     def plot(self, image, title):
         """Plot model using image (er, sig)
