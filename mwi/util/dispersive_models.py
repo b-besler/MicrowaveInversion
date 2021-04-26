@@ -4,6 +4,54 @@ import json
 
 import mwi.util.constants as constants
 
+material_indices = {
+    'FreeSpace':0,
+    'Muscle':1,
+    'Skin':2,
+    'Fat':3,
+    'Bone(Cortical)':4,
+    'Bone(Cancellous)':5,
+    'Blood':6
+    }
+
+def assign_model(model_file, material_def_file,f):
+    """Reads in material image (image of indices) and uses indicies to assign er and sig based on debye model
+    """
+    # read in material definitions
+    material_def = read_materials(material_def_file)
+    # read in model image
+    model = np.load(model_file)
+    # initialize er and sig images
+    er_model = np.zeros(model.shape)
+    sig_model = np.zeros(model.shape)
+
+    # find unique materials
+    model_indx = np.unique(model)
+    # create keys and values list for material indicies (keys = material names, values = material indices)
+    materials = list(material_indices.keys())
+    mat_indx = list(material_indices.values())
+
+    for indx in model_indx:
+        # find which material this index is
+        material = materials[mat_indx.index(int(indx))]
+
+        # create model for this material
+        debye_model = Debye(
+            material_def[material]['er_inf'],
+            material_def[material]['er_s'],
+            material_def[material]['tau'],
+            material_def[material]['sig_s'],
+            f[0]
+        )
+        # find where this material is in the image and assign er/sig
+        image_indx = (model == indx)
+        er_model[image_indx] = debye_model.er.real
+        sig_model[image_indx] = debye_model.sig
+
+    return er_model, sig_model
+    
+
+
 def assign_properties(objects, materials, f):
     """Assign complex permittivity values to object
 
