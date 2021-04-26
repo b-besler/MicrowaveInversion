@@ -59,6 +59,13 @@ def hydration_properties(folder, file_name, debye_data, slope_data, subject_info
             'index':er_model.material_indices[key]}
         i+=1
     
+        data['FreeSpace'] = {
+        'er_s': 1,
+        'er_inf':0,
+        'sig_s':0,
+        'tau':0,
+        'index':er_model.material_indices['FreeSpace']
+    }
 
     # write out data
     with open(os.path.join(folder, file_name) +'.json', 'w') as file:
