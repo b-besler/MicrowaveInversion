@@ -23,7 +23,7 @@ def calc_delta_w_eff(sex, weight, age):
 
 def hydration_properties(folder, file_name, debye_data, slope_data, subject_info, freq):
     """ Adjusts baseline properties for age and applies dehydration due to weight loss """
-    print('test')
+
     # create output folder if it doesn't exist
     if not os.path.exists(folder):
         os.mkdir(folder)
@@ -39,21 +39,26 @@ def hydration_properties(folder, file_name, debye_data, slope_data, subject_info
     
     phi_b = calc_phi_b(subject['sex'], subject['weight'], subject['age'])
     m = np.array([slope['er_s']['m'],slope['er_f']['m'],slope['sig_s']['m']])
-    delta_w = np.array(subject['delta_w'])
+    delta_w = np.array(subject['delta_w'])/subject['weight']*100
     data = {}
+    i = 1
     for key in tissues:
         # load water content of tissue
-        phi_i = tissues[key]['water']
+        phi_i = tissues[key]['water']*100
         # load baseline properties
         D_i = np.array([tissues[key]['er_s'], tissues[key]['er_inf'], tissues[key]['sig_s']])
         # apply change in properties due to weight
+
         D = D_i + np.outer(phi_i/phi_b * delta_w, m)
         # store new properties in dict to be written
         data[key]={
             'er_s': D[0,0], 
             'er_inf': D[0,1], 
             'sig_s':D[0,2],
-            'tau':tissues[key]['tau']}
+            'tau':tissues[key]['tau'],
+            'index':er_model.material_indices[key]}
+        i+=1
+    
 
     # write out data
     with open(os.path.join(folder, file_name) +'.json', 'w') as file:
